@@ -5,10 +5,10 @@ import (
 	"github.com/Financial-Times/coco-logfilter"
 	"io"
 	"os"
+	"fmt"
 )
 
 func main() {
-
 	dec := json.NewDecoder(os.Stdin)
 	enc := json.NewEncoder(os.Stdout)
 	for {
@@ -34,6 +34,7 @@ func munge(m map[string]interface{}) {
 		return
 	}
 
+	fmt.Println("values of ent %v", ent.Status)
 	// hackity
 	j, err := json.Marshal(ent)
 	if err != nil {
@@ -45,6 +46,7 @@ func munge(m map[string]interface{}) {
 		panic(err)
 	}
 	for k, v := range entMap {
+		fmt.Println("VALUES of MAP %v", v)
 		m[k] = v
 	}
 }

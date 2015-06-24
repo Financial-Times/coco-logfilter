@@ -9,10 +9,13 @@ import (
 
 var (
 	// 127.0.0.1 - - [21/Apr/2015:12:15:34 +0000] "GET /eom-file/all/e09b49d6-e1fa-11e4-bb7f-00144feab7de HTTP/1.1" 200 53706 919 919
-	re1 = regexp.MustCompile("^([\\d.]+) (\\S+) (\\S+) \\[([\\w:/]+\\s[+-]\\d{4})\\] \"(.+?)\" (\\d{3}) (\\d+) (\\d+) (\\d+)")
+	re1 = regexp.MustCompile("^([\\d.]+) (\\S+) (\\S+) \\[([\\w:/]+\\s[+-]\\d{4})\\] \"(.+?)\" (\\d{3}) (\\d+|-) (\\d+) (\\d+)")
 
 	// 172.31.30.229 - - [19/Jun/2015:09:24:24 +0000] "GET /foo/bar/baz HTTP/1.1" 200 1836 "referrer" "user-agent-123 version 2"
-	re2 = regexp.MustCompile("^([\\d.]+) (\\S+) (\\S+) \\[([\\w:/]+\\s[+-]\\d{4})\\] \"(.+?)\" (\\d{3}) (\\d+) \"(.+?)\" \"(.+?)\"")
+	re2 = regexp.MustCompile("^([\\d.]+) +(\\S+) +(\\S+) +\\[([\\w:/]+\\s[+-]\\d{4})\\] +\"(.+?)\" +(\\d{3}) +(\\d+|-) +\"(.+?)\" +\"(.+?)\"")
+
+	// 172.17.42.1 -  -  [24/Jun/2015:11:09:36 +0000] "POST /notify HTTP/1.1" 500 - "-" "curl/7.42.0" 2197
+	//re3 = regexp.MustCompile("^([\\d.]+) (\\S+) (\\S+) \\[([\\w:/]+\\s[+-]\\d{4})\\] \"(.+?)\" (\\d{3}) (\\d+|-) \"(.+?)\" \"(.+?)\"")
 )
 
 func Extract(message string) (ent accessEntry, extracted bool) {
@@ -63,6 +66,9 @@ func methodUrlProtocol(s string) (string, string, string) {
 }
 
 func atoi(s string) int {
+	if s=="-" {
+		return 0
+	}
 	i, err := strconv.Atoi(s)
 	if err != nil {
 		log.Fatalf("failed to parse %s as integer. this is a bug", s)

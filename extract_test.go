@@ -29,3 +29,16 @@ func TestMethodeAPIExample(t *testing.T) {
 	}
 	// TODO:
 }
+
+func TestCmsNotifierPostExample(t *testing.T) {
+	in := `172.17.42.1 -  -  [24/Jun/2015:11:09:36 +0000] "POST /notify HTTP/1.1" 500 - "-" "curl/7.42.0" 2197`
+	out, ok := Extract(in)
+	log.Printf("out status value %v", out.Status)
+	if !ok {
+		t.Fatal("failed to extract values")
+	}
+	if out.Status != 500 {
+		t.Errorf("expected status %d but got %d\n", 500, out.Status)
+	}
+	// TODO:
+}
