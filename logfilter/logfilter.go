@@ -26,7 +26,7 @@ func main() {
 
 func munge(m map[string]interface{}) {
 
-	message, ok := m["MESSAGE"].(string)
+	message, ok := fixBytesToString(m["MESSAGE"]).(string)
 	if !ok {
 		return
 	}
@@ -49,4 +49,25 @@ func munge(m map[string]interface{}) {
 	for k, v := range entMap {
 		m[k] = v
 	}
+}
+
+// workaround for cases where a string has been turned into a
+// byte array, or more accurately an array of float64, since
+// we've been via json.
+// TODO: remove this hack once the underlying cause is found
+func fixBytesToString(message interface{}) interface{} {
+	intArray, ok := message.([]interface{})
+	if !ok {
+		return message
+	}
+
+	data := make([]byte, len(intArray))
+	for i, v := range intArray {
+		f64, ok := v.(float64)
+		if !ok {
+			return message
+		}
+		data[i] = byte(f64)
+	}
+	return string(data)
 }
