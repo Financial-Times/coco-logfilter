@@ -13,3 +13,15 @@ func TestFixBytesToString(t *testing.T) {
 		t.Errorf("expected output %v but got %v\n", expected, output)
 	}
 }
+
+const expectedNewlines = `A
+B
+C`
+
+func TestFixNewlines(t *testing.T) {
+	input := "A|B|C"
+	output := fixNewLines(input)
+	if output != expectedNewlines {
+		t.Errorf("expected %v but got %v\n", expectedNewlines, output)
+	}
+}

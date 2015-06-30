@@ -5,6 +5,7 @@ import (
 	"github.com/Financial-Times/coco-logfilter"
 	"io"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -30,6 +31,9 @@ func munge(m map[string]interface{}) {
 	if !ok {
 		return
 	}
+
+	message = fixNewLines(message)
+	m["MESSAGE"] = message
 
 	ent, ok := logfilter.Extract(message)
 	if !ok {
@@ -70,4 +74,8 @@ func fixBytesToString(message interface{}) interface{} {
 		data[i] = byte(f64)
 	}
 	return string(data)
+}
+
+func fixNewLines(message string) string {
+	return strings.Replace(message, "|", "\n", -1)
 }
