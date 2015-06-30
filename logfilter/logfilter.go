@@ -26,7 +26,10 @@ func main() {
 
 func munge(m map[string]interface{}) {
 
-	message := m["MESSAGE"].(string)
+	message, ok := m["MESSAGE"].(string)
+	if !ok {
+		return
+	}
 
 	ent, ok := logfilter.Extract(message)
 	if !ok {
