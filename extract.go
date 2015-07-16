@@ -77,16 +77,16 @@ func atoi(s string) int {
 }
 
 type accessEntry struct {
-	RemoteServer string `json:",omitempty"`
-	User         string `json:",omitempty"`
-	Password     string `json:",omitempty"`
-	Timestamp    string `json:",omitempty"`
-	Method       string `json:",omitempty"`
-	Url          string `json:",omitempty"`
-	Protocol     string `json:",omitempty"`
-	Status       int    `json:",omitempty"`
-	LenBytes     int    `json:",omitempty"`
-	Referrer     string `json:",omitempty"`
-	UserAgent    string `json:",omitempty"`
-	TimeMs       int    `json:",omitempty"`
+	RemoteServer string `json:"remote-server,omitempty"`
+	User         string `json:"user,omitempty"`
+	Password     string `json:"password,omitempty"`
+	Timestamp    string `json:"timestamp,omitempty"`
+	Method       string `json:"method,omitempty"`
+	Url          string `json:"url,omitempty"`
+	Protocol     string `json:"protocol,omitempty"`
+	Status       int    `json:"status,omitempty"`
+	LenBytes     int    `json:"byte-length,omitempty"`
+	Referrer     string `json:"referrer,omitempty"`
+	UserAgent    string `json:"user-agent,omitempty"`
+	TimeMs       int    `json:"time-ms,omitempty"`
 }

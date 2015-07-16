@@ -27,6 +27,8 @@ func main() {
 
 func munge(m map[string]interface{}) {
 
+	m["platform"] = "up-coco"
+	
 	message, ok := fixBytesToString(m["MESSAGE"]).(string)
 	if !ok {
 		return
