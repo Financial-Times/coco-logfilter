@@ -8,6 +8,26 @@ import (
 	"strings"
 )
 
+var (
+	blacklistedProperties = []string{
+		"_GID",
+		"_CAP_EFFECTIVE",
+		"SYSLOG_FACILITY",
+		"PRIORITY",
+		"SYSLOG_IDENTIFIER",
+		"_BOOT_ID",
+		"_CMDLINE",
+		"_COMM",
+		"_EXE",
+		"_SYSTEMD_CGROUP",
+		"_SYSTEMD_SLICE",
+		"_TRANSPORT",
+		"_UID",
+		"__CURSOR",
+		"__MONOTONIC_TIMESTAMP",
+	}
+)
+
 func main() {
 	dec := json.NewDecoder(os.Stdin)
 	enc := json.NewEncoder(os.Stdout)
@@ -21,6 +41,7 @@ func main() {
 			panic(err)
 		}
 		munge(m)
+		removeBlacklistedProperties(m)
 		enc.Encode(m)
 	}
 }
@@ -80,4 +101,10 @@ func fixBytesToString(message interface{}) interface{} {
 
 func fixNewLines(message string) string {
 	return strings.Replace(message, "|", "\n", -1)
+}
+
+func removeBlacklistedProperties(m map[string]interface{}) {
+	for _, p := range blacklistedProperties {
+		delete(m, p)
+	}
 }

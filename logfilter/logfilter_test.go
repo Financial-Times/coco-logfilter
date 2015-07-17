@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -23,5 +24,41 @@ func TestFixNewlines(t *testing.T) {
 	output := fixNewLines(input)
 	if output != expectedNewlines {
 		t.Errorf("expected %v but got %v\n", expectedNewlines, output)
+	}
+}
+
+var rawJson = map[string]interface{}{
+	"MESSAGE":               "message",
+	"_HOSTNAME":             "hostname",
+	"_MACHINE_ID":           "machine",
+	"_SYSTEMD_UNIT":         "system",
+	"_GID":                  "gid",
+	"_COMM":                 "comm",
+	"_EXE":                  "exe",
+	"_CAP_EFFECTIVE":        "cap",
+	"SYSLOG_FACILITY":       "syslog",
+	"PRIORITY":              "priority",
+	"SYSLOG_IDENTIFIER":     "syslogi",
+	"_BOOT_ID":              "boot",
+	"_CMDLINE":              "cmd",
+	"_SYSTEMD_CGROUP":       "cgroup",
+	"_SYSTEMD_SLICE":        "slice",
+	"_TRANSPORT":            "transport",
+	"_UID":                  "uid",
+	"__CURSOR":              "cursor",
+	"__MONOTONIC_TIMESTAMP": "monotonic",
+}
+
+var blacklistFilteredJson = map[string]interface{}{
+	"MESSAGE":       "message",
+	"_HOSTNAME":     "hostname",
+	"_MACHINE_ID":   "machine",
+	"_SYSTEMD_UNIT": "system",
+}
+
+func TestApplyPropertyBlacklist(t *testing.T) {
+	removeBlacklistedProperties(rawJson)
+	if !reflect.DeepEqual(rawJson, blacklistFilteredJson) {
+		t.Errorf("expected %v but got %v\n", blacklistFilteredJson, rawJson)
 	}
 }
