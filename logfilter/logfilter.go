@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"github.com/Financial-Times/coco-logfilter"
 	"io"
 	"os"
@@ -28,7 +29,12 @@ var (
 	}
 )
 
+var environmentTag *string
+
 func main() {
+	environmentTag = flag.String("environment", "", "set the environment tag to use in the outputted json")
+	flag.Parse()
+
 	dec := json.NewDecoder(os.Stdin)
 	enc := json.NewEncoder(os.Stdout)
 	for {
@@ -49,6 +55,9 @@ func main() {
 func munge(m map[string]interface{}) {
 
 	m["platform"] = "up-coco"
+	if *environmentTag != "" {
+		m["environment"] = *environmentTag
+	}
 
 	message, ok := fixBytesToString(m["MESSAGE"]).(string)
 	if !ok {
