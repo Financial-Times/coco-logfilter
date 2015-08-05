@@ -66,7 +66,7 @@ func methodUrlProtocol(s string) (string, string, string) {
 }
 
 func atoi(s string) int {
-	if s=="-" {
+	if s == "-" {
 		return 0
 	}
 	i, err := strconv.Atoi(s)
