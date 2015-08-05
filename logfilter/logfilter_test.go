@@ -62,3 +62,25 @@ func TestApplyPropertyBlacklist(t *testing.T) {
 		t.Errorf("expected %v but got %v\n", blacklistFilteredJson, rawJson)
 	}
 }
+
+func TestEnvTag(t *testing.T) {
+	s := ""
+	environmentTag = &s
+
+	m := make(map[string]interface{})
+	munge(m)
+
+	if m["environment"] != nil {
+		t.Errorf("didn't expect to find environment %v", m["environment"])
+	}
+
+	s = "foo"
+	environmentTag = &s
+
+	munge(m)
+
+	if m["environment"] != "foo" {
+		t.Errorf("expected foo but got  %v", m["environment"])
+	}
+
+}
