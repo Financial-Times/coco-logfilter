@@ -117,5 +117,5 @@ type accessEntry struct {
 type appEntry struct {
 	Level     string `json:"level,omitempty"`
 	Timestamp string `json:"timestamp,omitempty"`
-	Message   string `json:"msg,omitempty"`
+	Message   string `json:"-"`
 }

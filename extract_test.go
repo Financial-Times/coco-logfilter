@@ -45,7 +45,7 @@ func TestCmsNotifierPostExample(t *testing.T) {
 	// TODO:
 }
 
-func TestCmsNotifierKafkaFetchingTopicError(t *testing.T) {
+func TestExtractAppEntry(t *testing.T) {
 	var tests = []struct {
 		message string
 		level   string
