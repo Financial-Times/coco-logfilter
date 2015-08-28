@@ -6,6 +6,7 @@ import (
 	"github.com/Financial-Times/coco-logfilter"
 	"io"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -67,6 +68,11 @@ func munge(m map[string]interface{}) {
 	message = fixNewLines(message)
 	m["MESSAGE"] = message
 
+	trans_id := extractTransactionId(message)
+	if trans_id != "" {
+		m["transaction_id"] = trans_id
+	}
+
 	ent, ok := logfilter.Extract(message)
 	if !ok {
 		return
@@ -85,6 +91,17 @@ func munge(m map[string]interface{}) {
 	for k, v := range entMap {
 		m[k] = v
 	}
+}
+
+var trans_regex = regexp.MustCompile(`\btransaction_id=([\w-]*)`)
+
+func extractTransactionId(message string) string {
+	matches := trans_regex.FindAllStringSubmatch(message, -1)
+	if len(matches) != 0 {
+		return matches[0][1]
+	}
+
+	return ""
 }
 
 // workaround for cases where a string has been turned into a
