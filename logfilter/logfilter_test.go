@@ -84,3 +84,28 @@ func TestEnvTag(t *testing.T) {
 	}
 
 }
+
+func TestTransactionId(t *testing.T) {
+	m := map[string]interface{}{
+		"MESSAGE": "foo baz baz transaction_id=transid_a-b banana",
+	}
+	munge(m)
+
+	expected := "transid_a-b"
+	actual := m["transaction_id"]
+	if actual != expected {
+		t.Errorf("expected %v but got %v", expected, actual)
+	}
+}
+
+func TestNoTransactionId(t *testing.T) {
+	m := map[string]interface{}{
+		"MESSAGE": "foo baz baz transazzzction_id=transid_a-b banana",
+	}
+	munge(m)
+
+	actual := m["transaction_id"]
+	if actual != nil {
+		t.Errorf("expected nil but got %v", actual)
+	}
+}
