@@ -28,6 +28,10 @@ var (
 		"__CURSOR",
 		"__MONOTONIC_TIMESTAMP",
 	}
+
+	blacklistedUnits = map[string]bool{
+		"splunk-forwarder.service": true,
+	}
 )
 
 var environmentTag *string
@@ -46,6 +50,12 @@ func main() {
 				return
 			}
 			panic(err)
+		}
+		unit := m["_SYSTEMD_UNIT"]
+		if unitString, ok := unit.(string); ok {
+			if blacklistedUnits[unitString] {
+				continue
+			}
 		}
 		munge(m)
 		removeBlacklistedProperties(m)
