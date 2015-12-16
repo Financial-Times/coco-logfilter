@@ -56,10 +56,24 @@ var blacklistFilteredJson = map[string]interface{}{
 	"_SYSTEMD_UNIT": "system",
 }
 
+var blacklistFilteredAndPropertiesRenamedJson = map[string]interface{}{
+	"MESSAGE":      "message",
+	"HOSTNAME":     "hostname",
+	"MACHINE_ID":   "machine",
+	"SYSTEMD_UNIT": "system",
+}
+
 func TestApplyPropertyBlacklist(t *testing.T) {
 	removeBlacklistedProperties(rawJson)
 	if !reflect.DeepEqual(rawJson, blacklistFilteredJson) {
 		t.Errorf("expected %v but got %v\n", blacklistFilteredJson, rawJson)
+	}
+}
+
+func TestShouldRenameProperties(t *testing.T) {
+	renameProperties(blacklistFilteredJson)
+	if !reflect.DeepEqual(blacklistFilteredJson, blacklistFilteredAndPropertiesRenamedJson) {
+		t.Errorf("expected %v but got %v\n", blacklistFilteredAndPropertiesRenamedJson, blacklistFilteredJson)
 	}
 }
 

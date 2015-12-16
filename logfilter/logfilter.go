@@ -27,10 +27,18 @@ var (
 		"_UID",
 		"__CURSOR",
 		"__MONOTONIC_TIMESTAMP",
+		"_SELINUX_CONTEXT",
+		"__REALTIME_TIMESTAMP",
 	}
 
 	blacklistedUnits = map[string]bool{
 		"splunk-forwarder.service": true,
+	}
+
+	propertyMapping = map[string]string{
+		"_SYSTEMD_UNIT": "SYSTEMD_UNIT",
+		"_MACHINE_ID":   "MACHINE_ID",
+		"_HOSTNAME":     "HOSTNAME",
 	}
 )
 
@@ -59,6 +67,7 @@ func main() {
 		}
 		munge(m)
 		removeBlacklistedProperties(m)
+		renameProperties(m)
 		enc.Encode(m)
 	}
 }
@@ -143,4 +152,15 @@ func removeBlacklistedProperties(m map[string]interface{}) {
 	for _, p := range blacklistedProperties {
 		delete(m, p)
 	}
+}
+
+func renameProperties(m map[string]interface{}) {
+	for p, r := range propertyMapping {
+		value := m[p]
+		if value != nil {
+			delete(m, p)
+			m[r] = value
+		}
+	}
+
 }
