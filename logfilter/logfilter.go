@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"github.com/Financial-Times/coco-logfilter"
 	"io"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/Financial-Times/coco-logfilter"
 )
 
 var (
@@ -33,6 +34,10 @@ var (
 
 	blacklistedUnits = map[string]bool{
 		"splunk-forwarder.service": true,
+	}
+
+	blacklistedStrings = []string{
+		"transaction_id=SYNTHETIC-REQ",
 	}
 
 	propertyMapping = map[string]string{
@@ -65,11 +70,31 @@ func main() {
 				continue
 			}
 		}
+
+		if containsBlacklistedString(m) {
+			continue
+		}
+
 		munge(m)
 		removeBlacklistedProperties(m)
 		renameProperties(m)
 		enc.Encode(m)
 	}
+}
+
+func containsBlacklistedString(m map[string]interface{}) bool {
+	message, ok := fixBytesToString(m["MESSAGE"]).(string)
+	if !ok {
+		return false
+	}
+
+	for _, blacklistedString := range blacklistedStrings {
+		if strings.Contains(message, blacklistedString) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func munge(m map[string]interface{}) {

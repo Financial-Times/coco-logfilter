@@ -123,3 +123,14 @@ func TestNoTransactionId(t *testing.T) {
 		t.Errorf("expected nil but got %v", actual)
 	}
 }
+
+func TestFilterBlacklistedStrings(t *testing.T) {
+	m := map[string]interface{}{
+		"MESSAGE": "foo baz baz " + blacklistedStrings[0] + " foo ",
+	}
+
+	if !containsBlacklistedString(m) {
+		t.Error("Expected to detect blacklisted string in test")
+	}
+
+}
