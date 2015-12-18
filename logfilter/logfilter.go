@@ -71,42 +71,33 @@ func main() {
 			}
 		}
 
-		if containsBlacklistedString(m) {
+		message := fixBytesToString(m["MESSAGE"]).(string)
+
+		if containsBlacklistedString(message) {
 			continue
 		}
 
-		munge(m)
+		munge(m, message)
 		removeBlacklistedProperties(m)
 		renameProperties(m)
 		enc.Encode(m)
 	}
 }
 
-func containsBlacklistedString(m map[string]interface{}) bool {
-	message, ok := fixBytesToString(m["MESSAGE"]).(string)
-	if !ok {
-		return false
-	}
-
+func containsBlacklistedString(message string) bool {
 	for _, blacklistedString := range blacklistedStrings {
 		if strings.Contains(message, blacklistedString) {
 			return true
 		}
 	}
-
 	return false
 }
 
-func munge(m map[string]interface{}) {
+func munge(m map[string]interface{}, message string) {
 
 	m["platform"] = "up-coco"
 	if *environmentTag != "" {
 		m["environment"] = *environmentTag
-	}
-
-	message, ok := fixBytesToString(m["MESSAGE"]).(string)
-	if !ok {
-		return
 	}
 
 	message = fixNewLines(message)
