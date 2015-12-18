@@ -124,13 +124,24 @@ func TestNoTransactionId(t *testing.T) {
 	}
 }
 
-func TestFilterBlacklistedStrings(t *testing.T) {
+func TestContainsBlacklistedStringWithBlacklistedString(t *testing.T) {
 	m := map[string]interface{}{
 		"MESSAGE": "foo baz baz " + blacklistedStrings[0] + " foo ",
 	}
 
 	if !containsBlacklistedString(m) {
 		t.Error("Expected to detect blacklisted string in test")
+	}
+
+}
+
+func TestContainsBlacklistedStringWithoutBlacklistedString(t *testing.T) {
+	m := map[string]interface{}{
+		"MESSAGE": "foo baz baz transazzzction_id=transid_a-b banana",
+	}
+
+	if containsBlacklistedString(m) {
+		t.Error("Detected black listed string when there was none")
 	}
 
 }
