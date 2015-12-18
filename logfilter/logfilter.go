@@ -30,6 +30,7 @@ var (
 		"__MONOTONIC_TIMESTAMP",
 		"_SELINUX_CONTEXT",
 		"__REALTIME_TIMESTAMP",
+		"_PID",
 	}
 
 	blacklistedUnits = map[string]bool{
