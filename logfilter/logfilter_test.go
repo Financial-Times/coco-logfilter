@@ -47,6 +47,9 @@ var rawJson = map[string]interface{}{
 	"_UID":                  "uid",
 	"__CURSOR":              "cursor",
 	"__MONOTONIC_TIMESTAMP": "monotonic",
+	"_PID":                  "pid",
+	"_SELINUX_CONTEXT":      "selinux context",
+	"__REALTIME_TIMESTAMP":  "realtime timestamp",
 }
 
 var blacklistFilteredJson = map[string]interface{}{

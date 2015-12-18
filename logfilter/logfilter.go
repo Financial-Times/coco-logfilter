@@ -30,12 +30,14 @@ var (
 		"__MONOTONIC_TIMESTAMP",
 		"_SELINUX_CONTEXT",
 		"__REALTIME_TIMESTAMP",
+		"_PID",
 	}
 
 	blacklistedUnits = map[string]bool{
-		"splunk-forwarder.service": true,
-		"docker.service":           true,
-		"diamond.service":          true,
+		"splunk-forwarder.service":   true,
+		"docker.service":             true,
+		"diamond.service":            true,
+		"logstash-forwarder.service": true,
 	}
 
 	blacklistedStrings = []string{
