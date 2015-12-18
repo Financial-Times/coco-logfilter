@@ -34,6 +34,7 @@ var (
 
 	blacklistedUnits = map[string]bool{
 		"splunk-forwarder.service": true,
+		"docker.service":           true,
 	}
 
 	blacklistedStrings = []string{
