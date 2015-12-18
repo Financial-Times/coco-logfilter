@@ -82,7 +82,7 @@ func TestEnvTag(t *testing.T) {
 	environmentTag = &s
 
 	m := make(map[string]interface{})
-	munge(m)
+	munge(m, "")
 
 	if m["environment"] != nil {
 		t.Errorf("didn't expect to find environment %v", m["environment"])
@@ -91,7 +91,7 @@ func TestEnvTag(t *testing.T) {
 	s = "foo"
 	environmentTag = &s
 
-	munge(m)
+	munge(m, "")
 
 	if m["environment"] != "foo" {
 		t.Errorf("expected foo but got  %v", m["environment"])
@@ -100,10 +100,11 @@ func TestEnvTag(t *testing.T) {
 }
 
 func TestTransactionId(t *testing.T) {
+	message := "foo baz baz transaction_id=transid_a-b banana"
 	m := map[string]interface{}{
-		"MESSAGE": "foo baz baz transaction_id=transid_a-b banana",
+		"MESSAGE": message,
 	}
-	munge(m)
+	munge(m, message)
 
 	expected := "transid_a-b"
 	actual := m["transaction_id"]
@@ -113,10 +114,11 @@ func TestTransactionId(t *testing.T) {
 }
 
 func TestNoTransactionId(t *testing.T) {
+	message := "foo baz baz transazzzction_id=transid_a-b banana"
 	m := map[string]interface{}{
-		"MESSAGE": "foo baz baz transazzzction_id=transid_a-b banana",
+		"MESSAGE": message,
 	}
-	munge(m)
+	munge(m, message)
 
 	actual := m["transaction_id"]
 	if actual != nil {
@@ -125,22 +127,18 @@ func TestNoTransactionId(t *testing.T) {
 }
 
 func TestContainsBlacklistedStringWithBlacklistedString(t *testing.T) {
-	m := map[string]interface{}{
-		"MESSAGE": "foo baz baz " + blacklistedStrings[0] + " foo ",
-	}
+	message := "foo baz baz " + blacklistedStrings[0] + " foo "
 
-	if !containsBlacklistedString(m) {
+	if !containsBlacklistedString(message) {
 		t.Error("Expected to detect blacklisted string in test")
 	}
 
 }
 
 func TestContainsBlacklistedStringWithoutBlacklistedString(t *testing.T) {
-	m := map[string]interface{}{
-		"MESSAGE": "foo baz baz transazzzction_id=transid_a-b banana",
-	}
+	message := "foo baz baz transazzzction_id=transid_a-b banana"
 
-	if containsBlacklistedString(m) {
+	if containsBlacklistedString(message) {
 		t.Error("Detected black listed string when there was none")
 	}
 
