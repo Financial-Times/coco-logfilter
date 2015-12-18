@@ -34,9 +34,10 @@ var (
 	}
 
 	blacklistedUnits = map[string]bool{
-		"splunk-forwarder.service": true,
-		"docker.service":           true,
-		"diamond.service":          true,
+		"splunk-forwarder.service":   true,
+		"docker.service":             true,
+		"diamond.service":            true,
+		"logstash-forwarder.service": true,
 	}
 
 	blacklistedStrings = []string{
