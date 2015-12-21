@@ -21,7 +21,7 @@ var (
 	re4 = regexp.MustCompile("([A-Z]{4,5})\\s{1,2}\\[([0-9\\-:,\\s]*)\\] (.*)")
 
 	//[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content
-	pamRegex = regexp.MustCompile("UUID=(.*) transaction_id=(.*) publishDate=(.*) publishOk=(.*) duration=(.*) endpoint=(.*)")
+	pamRegex = regexp.MustCompile("UUID=([\\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\\d*) publishOk=(\\w*) duration=(\\d*) endpoint=(\\w*)")
 )
 
 func Extract(message string) (v interface{}, extracted bool) {
@@ -76,7 +76,7 @@ func extractAppEntry(msg string) (ent appEntry, extracted bool) {
 	return
 }
 
-func extractPamEntity(msg string) (pam pamEntity, extracted bool){
+func extractPamEntity(msg string) (pam pamEntity, extracted bool) {
 	pam = pamEntity{}
 	matches := pamRegex.FindStringSubmatch(msg)
 	if len(matches) == 7 {
@@ -143,10 +143,10 @@ type appEntry struct {
 }
 
 type pamEntity struct {
-	UUID string `json:"uuid"`
+	UUID          string `json:"uuid"`
 	TransactionId string `json:"transaction_id"`
-	PublishDate string `json:"publishDate"`
-	PublishOk string `json:"publishOk"`
-	Duration string `json:"duration"`
-    Endpoint string `json:"endpoint"`
+	PublishDate   string `json:"publishDate"`
+	PublishOk     string `json:"publishOk"`
+	Duration      string `json:"duration"`
+	Endpoint      string `json:"endpoint"`
 }

@@ -68,23 +68,23 @@ func TestExtractAppEntry(t *testing.T) {
 	}
 }
 
-func TestExtractPamEntity(t *testing.T){
+func TestExtractPamEntity(t *testing.T) {
 	var tests = []struct {
-		message string
-		UUID   string
+		message        string
+		UUID           string
 		Transaction_id string
-		PublishDate string
-		PublishOk string
-		Duration string
-		Endpoint string
+		PublishDate    string
+		PublishOk      string
+		Duration       string
+		Endpoint       string
 	}{
 		{`[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content`,
-		"08d30fb4-a7b3-11e5-955c-1e1d6de94879",
-		"tid_28pbiavoqs",
-		"1450692093737000000",
-		"true",
-		"6",
-		"content"},
+			"08d30fb4-a7b3-11e5-955c-1e1d6de94879",
+			"tid_28pbiavoqs",
+			"1450692093737000000",
+			"true",
+			"6",
+			"content"},
 	}
 
 	for _, test := range tests {
