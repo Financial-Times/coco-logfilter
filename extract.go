@@ -19,10 +19,17 @@ var (
 
 	// ERROR [2015-08-08 00:18:05,872] com.ft.binaryingester.health.BinaryWriterDependencyHealthCheck:  Exception during dependency version check|[dw-18 - GET /__health]! com.sun.jersey.api.client.ClientHandlerException: java.net.SocketTimeoutException: Read timed out|! at com.sun.jersey.client.apache4.ApacheHttpClient4Handler.handle(ApacheHttpClient4Handler.java:187) ~[app.jar:na]|! at com.sun.jersey.api.client.filter.GZIPContentEncodingFilter.handle(GZIPContentEncodingFilter.java:120) ~[app.jar:na]|! at com.sun.jersey.api.client.Client.handle(Client.java:652) ~[app.jar:na]|! at com.ft.jerseyhttpwrapper.ResilientClient.handle(ResilientClient.java:142) ~[app.jar:na]|! at com.sun.jersey.api.client.WebResource.handle(WebResource.java:682) ~[app.jar:na]|! at com.sun.jersey.api.client.WebResource.access$200(WebResource.java:74) ~[app.jar:na]|! at com.sun.jersey.api.client.WebResource$Builder.get(WebResource.java:509) ~[app.jar:na]|! at com.ft.binaryingester.health.BinaryWriterDependencyHealthCheck.checkAdvanced(BinaryWriterDependencyHealthCheck.java:48) ~[app.jar:na]|! at com.ft.platform.dropwizard.AdvancedHealthCheck.executeAdvanced(AdvancedHealthCheck.java:21) [app.jar:na]|! at com.ft.platform.dropwizard.HealthChecks.runAdvancedHealthChecksIn(HealthChecks.java:22) [app.jar:na]|! at com.ft.platform.dropwizard.AdvancedHealthChecksRunner.run(AdvancedHealthChecksRunner.java:36) [app.jar:na]|! at com.ft.platform.dropwizard.AdvancedHealthCheckServlet.doGet(AdvancedHealthCheckServlet.java:40) [app.jar:na]|! at javax.servlet.http.HttpServlet.service(HttpServlet.java:735) [app.jar:na]|! at javax.servlet.http.HttpServlet.service(HttpServlet.java:848) [app.jar:na]|! at io.dropwizard.jetty.NonblockingServletHolder.handle(NonblockingServletHolder.java:49) [app.jar:na]|! at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1515) [app.jar:na]|! at org.eclipse.jetty.servlets.UserAgentFilter.doFilter(UserAgentFilter.java:83) [app.jar:na]|! at org.eclipse.jetty.servlets.GzipFilter.doFilter(GzipFilter.java:34
 	re4 = regexp.MustCompile("([A-Z]{4,5})\\s{1,2}\\[([0-9\\-:,\\s]*)\\] (.*)")
+
+	//[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content
+	pamRegex = regexp.MustCompile("UUID=(.*) transaction_id=(.*) publishDate=(.*) publishOk=(.*) duration=(.*) endpoint=(.*)")
 )
 
 func Extract(message string) (v interface{}, extracted bool) {
 	v, extracted = extractAccEntry(message)
+	if extracted {
+		return v, extracted
+	}
+	v, extracted = extractPamEntity(message)
 	if extracted {
 		return v, extracted
 	}
@@ -64,6 +71,21 @@ func extractAppEntry(msg string) (ent appEntry, extracted bool) {
 		ent.Level = matches[1]
 		ent.Timestamp = matches[2]
 		ent.Message = matches[3]
+		extracted = true
+	}
+	return
+}
+
+func extractPamEntity(msg string) (pam pamEntity, extracted bool){
+	pam = pamEntity{}
+	matches := pamRegex.FindStringSubmatch(msg)
+	if len(matches) == 7 {
+		pam.UUID = matches[1]
+		pam.TransactionId = matches[2]
+		pam.PublishDate = matches[3]
+		pam.PublishOk = matches[4]
+		pam.Duration = matches[5]
+		pam.Endpoint = matches[6]
 		extracted = true
 	}
 	return
@@ -118,4 +140,13 @@ type appEntry struct {
 	Level     string `json:"level,omitempty"`
 	Timestamp string `json:"timestamp,omitempty"`
 	Message   string `json:"-"`
+}
+
+type pamEntity struct {
+	UUID string `json:"uuid"`
+	TransactionId string `json:"transaction_id"`
+	PublishDate string `json:"publishDate"`
+	PublishOk string `json:"publishOk"`
+	Duration string `json:"duration"`
+    Endpoint string `json:"endpoint"`
 }
