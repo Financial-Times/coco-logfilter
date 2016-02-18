@@ -112,3 +112,33 @@ func TestExtractPamEntity(t *testing.T) {
 		}
 	}
 }
+
+func TestExtractVarnishEntity(t *testing.T) {
+	var tests = []struct {
+		message  string
+		Uri      string
+		Status   string
+		Resptime string
+	}{
+		{`172.24.73.234 17/Feb/2016:15:00:49 /content/b3e53794-bbe0-3de4-b46a-bf42df83c72a 200 235743`,
+			"/content/b3e53794-bbe0-3de4-b46a-bf42df83c72a",
+			"200",
+			"235743"},
+	}
+
+	for _, test := range tests {
+		varnishEntity, ok := extractVarnishEntity(test.message)
+		if !ok {
+			t.Fatalf("failed to extract values '%s'", test.message)
+		}
+		if varnishEntity.Uri != test.Uri {
+			t.Errorf("message: %s\nexpected uri %s, actual uri %s", test.message, test.Uri, varnishEntity.Uri)
+		}
+		if varnishEntity.Status != test.Status {
+			t.Errorf("message: %s\nexpected status %s, actual status %s", test.message, test.Status, varnishEntity.Status)
+		}
+		if varnishEntity.Resptime != test.Resptime {
+			t.Errorf("message: %s\nexpected respTime %s, actual respTime %s", test.message, test.Resptime, varnishEntity.Resptime)
+		}
+	}
+}
