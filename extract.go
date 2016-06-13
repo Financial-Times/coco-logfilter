@@ -23,8 +23,8 @@ var (
 	//[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content
 	pamRegex = regexp.MustCompile("UUID=([\\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\\d*) publishOk=(\\w*) duration=(\\d*) endpoint=(\\w*)")
 
-    //172.17.42.1 17/Feb/2016:14:34:13 /content/b3e53794-bbe0-3de4-b46a-bf42df83c72a 200 2075494
-	varnishRegex = regexp.MustCompile("^[\\d.]+\\s+[\\w:/]+\\s+(\\S+)\\s+([0-9]{3})\\s+([0-9\\.]+)")
+	// 172.17.0.1 usr 13/Jun/2016:13:36:23 /test 200 148866 "curl/7.49.1"
+	varnishRegex = regexp.MustCompile(`^\S+\s+(\S+)\s+[\w:\/]+\s+(\S+)\s+([0-9]{3})\s+([0-9\.]+)\s+\"(\S+)\"`)
 )
 
 func Extract(message string) (v interface{}, extracted bool) {
@@ -101,10 +101,12 @@ func extractPamEntity(msg string) (pam pamEntity, extracted bool) {
 func extractVarnishEntity(msg string) (varnish varnishEntity, extracted bool) {
 	varnish = varnishEntity{}
 	matches := varnishRegex.FindStringSubmatch(msg)
-	if len(matches) == 4 {
-		varnish.Uri = matches[1]
-		varnish.Status = matches[2]
-		varnish.Resptime = matches[3]
+	if len(matches) == 6 {
+		varnish.AuthUser = matches[1]
+		varnish.Uri = matches[2]
+		varnish.Status = matches[3]
+		varnish.Resptime = matches[4]
+		varnish.UserAgent = matches[5]
 		extracted = true
 	}
 	return
@@ -171,7 +173,9 @@ type pamEntity struct {
 }
 
 type varnishEntity struct {
-	Uri      string `json:"uri,omitempty"`
-	Status   string `json:"status,omitempty"`
-	Resptime string `json:"resptime,omitempty"`
+	AuthUser  string `json:"authuser,omitempty"`
+	Uri       string `json:"uri,omitempty"`
+	Status    string `json:"status,omitempty"`
+	Resptime  string `json:"resptime,omitempty"`
+	UserAgent string `json:"useragent,omitempty"`
 }

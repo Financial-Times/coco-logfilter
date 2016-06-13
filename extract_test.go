@@ -115,15 +115,19 @@ func TestExtractPamEntity(t *testing.T) {
 
 func TestExtractVarnishEntity(t *testing.T) {
 	var tests = []struct {
-		message  string
-		Uri      string
-		Status   string
-		Resptime string
+		message   string
+		AuthUser  string
+		Uri       string
+		Status    string
+		Resptime  string
+		UserAgent string
 	}{
-		{`172.24.73.234 17/Feb/2016:15:00:49 /content/b3e53794-bbe0-3de4-b46a-bf42df83c72a 200 235743`,
-			"/content/b3e53794-bbe0-3de4-b46a-bf42df83c72a",
+		{`172.17.0.1 usr 13/Jun/2016:13:36:23 /test 200 148866 "curl/7.49.1"`,
+			"usr",
+			"/test",
 			"200",
-			"235743"},
+			"148866",
+			"curl/7.49.1"},
 	}
 
 	for _, test := range tests {
