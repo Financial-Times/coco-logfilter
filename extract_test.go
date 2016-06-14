@@ -122,12 +122,12 @@ func TestExtractVarnishEntity(t *testing.T) {
 		Resptime  string
 		UserAgent string
 	}{
-		{`172.17.0.1 usr 13/Jun/2016:13:36:23 /test 200 148866 "curl/7.49.1"`,
-			"usr",
-			"/test",
+		{`82.136.1.214, 172.24.88.199 next 14/Jun/2016:08:24:42 /__enriched-content-read-api/enrichedcontent/409ba29e-b7f8-417f-9847-f3332aa064a6 200 65526 "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"`,
+			"next",
+			"/__enriched-content-read-api/enrichedcontent/409ba29e-b7f8-417f-9847-f3332aa064a6",
 			"200",
-			"148866",
-			"curl/7.49.1"},
+			"65526",
+			"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"},
 	}
 
 	for _, test := range tests {

@@ -24,7 +24,7 @@ var (
 	pamRegex = regexp.MustCompile("UUID=([\\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\\d*) publishOk=(\\w*) duration=(\\d*) endpoint=(\\w*)")
 
 	// 172.17.0.1 usr 13/Jun/2016:13:36:23 /test 200 148866 "curl/7.49.1"
-	varnishRegex = regexp.MustCompile(`^\S+\s+(\S+)\s+[\w:\/]+\s+(\S+)\s+([0-9]{3})\s+([0-9\.]+)\s+\"(\S+)\"`)
+	varnishRegex = regexp.MustCompile(`^[\d\.\,\s]+\s+(\S+)\s+[\w:\/]+\s+(\S+)\s+([0-9]{3})\s+([0-9\.]+)\s+\"([\S\s]+)\"`)
 )
 
 func Extract(message string) (v interface{}, extracted bool) {
