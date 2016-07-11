@@ -21,7 +21,7 @@ var (
 	re4 = regexp.MustCompile("([A-Z]{4,5})\\s{1,2}\\[([0-9\\-:,\\s]*)\\] (.*)")
 
 	//[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content
-	pamRegex = regexp.MustCompile("UUID=([\\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\\d*) publishOk=(\\w*) duration=(\\d*) endpoint=(\\w*)")
+	pamRegex = regexp.MustCompile(`UUID=([\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\d*) publishOk=(\w*) duration=(\d*) endpoint=([\w-]*)`)
 
 	// 172.17.0.1 usr 13/Jun/2016:13:36:23 /test 200 148866 "curl/7.49.1"
 	varnishRegex = regexp.MustCompile(`^[\d\.\,\s]+\s+(\S+)\s+[\w:\/]+\s+(\S+)\s+([0-9]{3})\s+([0-9\.]+)\s+\"([\S\s]+)\"`)
