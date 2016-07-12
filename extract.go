@@ -9,19 +9,16 @@ import (
 
 var (
 	// 127.0.0.1 - - [21/Apr/2015:12:15:34 +0000] "GET /eom-file/all/e09b49d6-e1fa-11e4-bb7f-00144feab7de HTTP/1.1" 200 53706 919 919
-	re1 = regexp.MustCompile("^([\\d.]+) (\\S+) (\\S+) \\[([\\w:/]+\\s[+-]\\d{4})\\] \"(.+?)\" (\\d{3}) (\\d+|-) (\\d+) (\\d+)")
+	re1 = regexp.MustCompile(`^([\d.]+) (\S+) (\S+) \[([\w:/]+\s[+-]\d{4})\] \"(.+?)\" (\d{3}) (\d+|-) (\d+) (\d+)`)
 
 	// 172.31.30.229 - - [19/Jun/2015:09:24:24 +0000] "GET /foo/bar/baz HTTP/1.1" 200 1836 "referrer" "user-agent-123 version 2"
-	re2 = regexp.MustCompile("^([\\d.]+) +(\\S+) +(\\S+) +\\[([\\w:/]+\\s[+-]\\d{4})\\] +\"(.+?)\" +(\\d{3}) +(\\d+|-) +\"(.+?)\" +\"(.+?)\"")
-
-	// 172.17.42.1 -  -  [24/Jun/2015:11:09:36 +0000] "POST /notify HTTP/1.1" 500 - "-" "curl/7.42.0" 2197
-	//re3 = regexp.MustCompile("^([\\d.]+) (\\S+) (\\S+) \\[([\\w:/]+\\s[+-]\\d{4})\\] \"(.+?)\" (\\d{3}) (\\d+|-) \"(.+?)\" \"(.+?)\"")
-
+	re2 = regexp.MustCompile(`^([\d.]+) +(\S+) +(\S+) +\[([\w:/]+\s[+-]\d{4})\] +\"(.+?)\" +(\d{3}) +(\d+|-) +\"(.+?)\" +\"(.+?)\"`)
+	
 	// ERROR [2015-08-08 00:18:05,872] com.ft.binaryingester.health.BinaryWriterDependencyHealthCheck:  Exception during dependency version check|[dw-18 - GET /__health]! com.sun.jersey.api.client.ClientHandlerException: java.net.SocketTimeoutException: Read timed out|! at com.sun.jersey.client.apache4.ApacheHttpClient4Handler.handle(ApacheHttpClient4Handler.java:187) ~[app.jar:na]|! at com.sun.jersey.api.client.filter.GZIPContentEncodingFilter.handle(GZIPContentEncodingFilter.java:120) ~[app.jar:na]|! at com.sun.jersey.api.client.Client.handle(Client.java:652) ~[app.jar:na]|! at com.ft.jerseyhttpwrapper.ResilientClient.handle(ResilientClient.java:142) ~[app.jar:na]|! at com.sun.jersey.api.client.WebResource.handle(WebResource.java:682) ~[app.jar:na]|! at com.sun.jersey.api.client.WebResource.access$200(WebResource.java:74) ~[app.jar:na]|! at com.sun.jersey.api.client.WebResource$Builder.get(WebResource.java:509) ~[app.jar:na]|! at com.ft.binaryingester.health.BinaryWriterDependencyHealthCheck.checkAdvanced(BinaryWriterDependencyHealthCheck.java:48) ~[app.jar:na]|! at com.ft.platform.dropwizard.AdvancedHealthCheck.executeAdvanced(AdvancedHealthCheck.java:21) [app.jar:na]|! at com.ft.platform.dropwizard.HealthChecks.runAdvancedHealthChecksIn(HealthChecks.java:22) [app.jar:na]|! at com.ft.platform.dropwizard.AdvancedHealthChecksRunner.run(AdvancedHealthChecksRunner.java:36) [app.jar:na]|! at com.ft.platform.dropwizard.AdvancedHealthCheckServlet.doGet(AdvancedHealthCheckServlet.java:40) [app.jar:na]|! at javax.servlet.http.HttpServlet.service(HttpServlet.java:735) [app.jar:na]|! at javax.servlet.http.HttpServlet.service(HttpServlet.java:848) [app.jar:na]|! at io.dropwizard.jetty.NonblockingServletHolder.handle(NonblockingServletHolder.java:49) [app.jar:na]|! at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1515) [app.jar:na]|! at org.eclipse.jetty.servlets.UserAgentFilter.doFilter(UserAgentFilter.java:83) [app.jar:na]|! at org.eclipse.jetty.servlets.GzipFilter.doFilter(GzipFilter.java:34
-	re4 = regexp.MustCompile("([A-Z]{4,5})\\s{1,2}\\[([0-9\\-:,\\s]*)\\] (.*)")
+	re4 = regexp.MustCompile(`([A-Z]{4,5})\s{1,2}\[([0-9\-:,\s]*)\] (.*)`)
 
 	//[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content
-	pamRegex = regexp.MustCompile("UUID=([\\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\\d*) publishOk=(\\w*) duration=(\\d*) endpoint=(\\w*)")
+	pamRegex = regexp.MustCompile(`UUID=([\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\d*) publishOk=(\w*) duration=(\d*) endpoint=([\w-]*)`)
 
 	// 172.17.0.1 usr 13/Jun/2016:13:36:23 /test 200 148866 "curl/7.49.1"
 	varnishRegex = regexp.MustCompile(`^[\d\.\,\s]+\s+(\S+)\s+[\w:\/]+\s+(\S+)\s+([0-9]{3})\s+([0-9\.]+)\s+\"([\S\s]+)\"`)
@@ -46,29 +43,23 @@ func Extract(message string) (v interface{}, extracted bool) {
 func extractAccEntry(msg string) (ent accessEntry, extracted bool) {
 	ent = accessEntry{}
 	matches := re1.FindStringSubmatch(msg)
+	extractFields(matches, &ent, &extracted)
+	matches = re2.FindStringSubmatch(msg)
+	extractFields(matches, &ent, &extracted)
+	return
+}
+
+func extractFields(matches []string, ent *accessEntry, extracted *bool) {
 	if len(matches) == 10 {
 		ent.RemoteServer = matches[1]
 		//todo 2 & 3
 		ent.Timestamp = matches[4]
-		ent.Method, ent.Url, ent.Protocol = methodUrlProtocol(matches[5])
+		ent.Method, ent.URL, ent.Protocol = methodURLProtocol(matches[5])
 		ent.Status = atoi(matches[6])
 		ent.LenBytes = atoi(matches[7])
 		// todo 8,9,10
-		extracted = true
+		*extracted = true
 	}
-
-	matches = re2.FindStringSubmatch(msg)
-	if len(matches) == 10 {
-		ent.RemoteServer = matches[1]
-		//todo 2 & 3
-		ent.Timestamp = matches[4]
-		ent.Method, ent.Url, ent.Protocol = methodUrlProtocol(matches[5])
-		ent.Status = atoi(matches[6])
-		ent.LenBytes = atoi(matches[7])
-		// todo 8,9
-		extracted = true
-	}
-	return
 }
 
 func extractAppEntry(msg string) (ent appEntry, extracted bool) {
@@ -88,7 +79,7 @@ func extractPamEntity(msg string) (pam pamEntity, extracted bool) {
 	matches := pamRegex.FindStringSubmatch(msg)
 	if len(matches) == 7 {
 		pam.UUID = matches[1]
-		pam.TransactionId = matches[2]
+		pam.TransactionID = matches[2]
 		pam.PublishDate = matches[3]
 		pam.PublishOk = matches[4]
 		pam.Duration = matches[5]
@@ -103,7 +94,7 @@ func extractVarnishEntity(msg string) (varnish varnishEntity, extracted bool) {
 	matches := varnishRegex.FindStringSubmatch(msg)
 	if len(matches) == 6 {
 		varnish.AuthUser = matches[1]
-		varnish.Uri = matches[2]
+		varnish.URI = matches[2]
 		varnish.Status = matches[3]
 		varnish.Resptime = matches[4]
 		varnish.UserAgent = matches[5]
@@ -112,18 +103,7 @@ func extractVarnishEntity(msg string) (varnish varnishEntity, extracted bool) {
 	return
 }
 
-/*
-func parseTime(s string) time.Time {
-	format := "02/Jan/2006:15:04:05 -0700"
-	t, err := time.Parse(format, s)
-	if err != nil {
-		log.Fatalf("failed to parse date %s. This is a bug\n%v\n", s, err)
-	}
-	return t
-}
-*/
-
-func methodUrlProtocol(s string) (string, string, string) {
+func methodURLProtocol(s string) (string, string, string) {
 	mup := strings.Split(s, " ")
 	if len(mup) != 3 {
 		log.Fatalf("failed to split methode, url protocol from  %s.  This is a bug", s)
@@ -148,7 +128,7 @@ type accessEntry struct {
 	Password     string `json:"password,omitempty"`
 	Timestamp    string `json:"timestamp,omitempty"`
 	Method       string `json:"method,omitempty"`
-	Url          string `json:"url,omitempty"`
+	URL          string `json:"url,omitempty"`
 	Protocol     string `json:"protocol,omitempty"`
 	Status       int    `json:"status,omitempty"`
 	LenBytes     int    `json:"byte-length,omitempty"`
@@ -165,7 +145,7 @@ type appEntry struct {
 
 type pamEntity struct {
 	UUID          string `json:"uuid"`
-	TransactionId string `json:"transaction_id"`
+	TransactionID string `json:"transaction_id"`
 	PublishDate   string `json:"publishDate"`
 	PublishOk     string `json:"publishOk"`
 	Duration      string `json:"duration"`
@@ -174,7 +154,7 @@ type pamEntity struct {
 
 type varnishEntity struct {
 	AuthUser  string `json:"authuser,omitempty"`
-	Uri       string `json:"uri,omitempty"`
+	URI       string `json:"uri,omitempty"`
 	Status    string `json:"status,omitempty"`
 	Resptime  string `json:"resptime,omitempty"`
 	UserAgent string `json:"useragent,omitempty"`
