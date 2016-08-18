@@ -17,7 +17,13 @@ func TestRepoMirrorLogExample(t *testing.T) {
 		t.Fatal("failed to extract values")
 	}
 
+	assert.Equal("172.31.30.229", out.RemoteServer)
+	assert.Equal("19/Jun/2015:09:24:24 +0000", out.Timestamp)
+	assert.Equal("GET", out.Method)
+	assert.Equal("/v1/images/f467d023d63178a6686daab33049b7fec024f88e5b64898e9c89dafaaa4e1d8a/ancestry", out.URL)
+	assert.Equal("HTTP/1.1", out.Protocol)
 	assert.Equal(200, out.Status)
+	assert.Equal(1836, out.LenBytes)
 	// TODO:
 }
 
@@ -31,7 +37,13 @@ func TestMethodeAPIExample(t *testing.T) {
 		t.Fatal("failed to extract values")
 	}
 
+	assert.Equal("127.0.0.1", out.RemoteServer)
+	assert.Equal("21/Apr/2015:12:15:34 +0000", out.Timestamp)
+	assert.Equal("GET", out.Method)
+	assert.Equal("/eom-file/all/e09b49d6-e1fa-11e4-bb7f-00144feab7de", out.URL)
+	assert.Equal("HTTP/1.1", out.Protocol)
 	assert.Equal(200, out.Status)
+	assert.Equal(53706, out.LenBytes)
 	// TODO:
 }
 
@@ -45,7 +57,13 @@ func TestCmsNotifierPostExample(t *testing.T) {
 		t.Fatal("failed to extract values")
 	}
 
+	assert.Equal("172.17.42.1", out.RemoteServer)
+	assert.Equal("24/Jun/2015:11:09:36 +0000", out.Timestamp)
+	assert.Equal("POST", out.Method)
+	assert.Equal("/notify", out.URL)
+	assert.Equal("HTTP/1.1", out.Protocol)
 	assert.Equal(500, out.Status)
+	assert.Equal(0, out.LenBytes)
 	// TODO:
 }
 
