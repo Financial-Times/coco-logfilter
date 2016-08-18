@@ -71,6 +71,28 @@ func TestCmsNotifierPostExample(t *testing.T) {
 	// TODO:
 }
 
+func TestExtractNeoExample(t *testing.T) {
+	assert := assert.New(t)
+
+	in := `172.24.3.248 - - [18/Aug/2016:09:51:35 +0000] "POST /db/data/cypher HTTP/1.1" 200 51 "-" "neoism" 77`
+	out, ok := extractAccEntry(in)
+
+	if !ok {
+		t.Fatal("failed to extract values")
+	}
+
+	assert.Equal("172.24.3.248", out.RemoteServer)
+	assert.Equal("18/Aug/2016:09:51:35 +0000", out.Timestamp)
+	assert.Equal("POST", out.Method)
+	assert.Equal("/db/data/cypher", out.URL)
+	assert.Equal("HTTP/1.1", out.Protocol)
+	assert.Equal(200, out.Status)
+	assert.Equal(51, out.LenBytes)
+	assert.Equal("neoism", out.UserAgent)
+
+	t.Logf("%+v\n", out)
+}
+
 func TestExtractAppEntry(t *testing.T) {
 	var tests = []struct {
 		message string
