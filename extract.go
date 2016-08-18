@@ -40,16 +40,21 @@ func Extract(message string) (v interface{}, extracted bool) {
 	return extractAppEntry(message)
 }
 
-func extractAccEntry(msg string) (ent accessEntry, extracted bool) {
-	ent = accessEntry{}
-	matches := re1.FindStringSubmatch(msg)
-	extractFields(matches, &ent, &extracted)
-	matches = re2.FindStringSubmatch(msg)
-	extractFields(matches, &ent, &extracted)
+func extractAccEntry(message string) (ent accessEntry, extracted bool) {
+	v, extracted := extractAccEntryRE1(message)
+	if extracted {
+		return v, extracted
+	}
+	v, extracted = extractAccEntryRE2(message)
+	if extracted {
+		return v, extracted
+	}
 	return
 }
 
-func extractFields(matches []string, ent *accessEntry, extracted *bool) {
+func extractAccEntryRE1(msg string) (ent accessEntry, extracted bool) {
+	ent = accessEntry{}
+	matches := re1.FindStringSubmatch(msg)
 	if len(matches) == 10 {
 		ent.RemoteServer = matches[1]
 		//todo 2 & 3
@@ -58,8 +63,27 @@ func extractFields(matches []string, ent *accessEntry, extracted *bool) {
 		ent.Status = atoi(matches[6])
 		ent.LenBytes = atoi(matches[7])
 		// todo 8,9,10
-		*extracted = true
+		extracted = true
 	}
+	return
+}
+
+func extractAccEntryRE2(msg string) (ent accessEntry, extracted bool) {
+	ent = accessEntry{}
+	matches := re2.FindStringSubmatch(msg)
+	if len(matches) == 10 {
+		ent.RemoteServer = matches[1]
+		//todo 2 & 3
+		ent.Timestamp = matches[4]
+		ent.Method, ent.URL, ent.Protocol = methodURLProtocol(matches[5])
+		ent.Status = atoi(matches[6])
+		ent.LenBytes = atoi(matches[7])
+		// todo 8
+		ent.UserAgent = matches[9]
+		// todo 10
+		extracted = true
+	}
+	return
 }
 
 func extractAppEntry(msg string) (ent appEntry, extracted bool) {

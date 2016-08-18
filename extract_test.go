@@ -24,6 +24,8 @@ func TestRepoMirrorLogExample(t *testing.T) {
 	assert.Equal("HTTP/1.1", out.Protocol)
 	assert.Equal(200, out.Status)
 	assert.Equal(1836, out.LenBytes)
+	assert.Equal(`docker/1.5.0 go/go1.3.3 git-commit/a8a31ef-dirty kernel/3.19.3 os/linux arch/amd64`, out.UserAgent)
+
 	// TODO:
 }
 
@@ -44,6 +46,7 @@ func TestMethodeAPIExample(t *testing.T) {
 	assert.Equal("HTTP/1.1", out.Protocol)
 	assert.Equal(200, out.Status)
 	assert.Equal(53706, out.LenBytes)
+	assert.Equal("", out.UserAgent)
 	// TODO:
 }
 
@@ -64,6 +67,7 @@ func TestCmsNotifierPostExample(t *testing.T) {
 	assert.Equal("HTTP/1.1", out.Protocol)
 	assert.Equal(500, out.Status)
 	assert.Equal(0, out.LenBytes)
+	assert.Equal("curl/7.42.0", out.UserAgent)
 	// TODO:
 }
 
