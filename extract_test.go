@@ -89,6 +89,7 @@ func TestExtractNeoExample(t *testing.T) {
 	assert.Equal(200, out.Status)
 	assert.Equal(51, out.LenBytes)
 	assert.Equal("neoism", out.UserAgent)
+	assert.Equal(77, out.TimeMs)
 
 	t.Logf("%+v\n", out)
 }
