@@ -2,9 +2,13 @@ package logfilter
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRepoMirrorLogExample(t *testing.T) {
+	assert := assert.New(t)
+
 	in := `172.31.30.229 - - [19/Jun/2015:09:24:24 +0000] "GET /v1/images/f467d023d63178a6686daab33049b7fec024f88e5b64898e9c89dafaaa4e1d8a/ancestry HTTP/1.1" 200 1836 "-" "docker/1.5.0 go/go1.3.3 git-commit/a8a31ef-dirty kernel/3.19.3 os/linux arch/amd64"`
 
 	out, ok := extractAccEntry(in)
@@ -13,36 +17,81 @@ func TestRepoMirrorLogExample(t *testing.T) {
 		t.Fatal("failed to extract values")
 	}
 
-	if out.Status != 200 {
-		t.Errorf("expected status %d but got %d\n", 200, out.Status)
-	}
+	assert.Equal("172.31.30.229", out.RemoteServer)
+	assert.Equal("19/Jun/2015:09:24:24 +0000", out.Timestamp)
+	assert.Equal("GET", out.Method)
+	assert.Equal("/v1/images/f467d023d63178a6686daab33049b7fec024f88e5b64898e9c89dafaaa4e1d8a/ancestry", out.URL)
+	assert.Equal("HTTP/1.1", out.Protocol)
+	assert.Equal(200, out.Status)
+	assert.Equal(1836, out.LenBytes)
+	assert.Equal(`docker/1.5.0 go/go1.3.3 git-commit/a8a31ef-dirty kernel/3.19.3 os/linux arch/amd64`, out.UserAgent)
+
 	// TODO:
 }
 
 func TestMethodeAPIExample(t *testing.T) {
+	assert := assert.New(t)
+
 	in := `127.0.0.1 - - [21/Apr/2015:12:15:34 +0000] "GET /eom-file/all/e09b49d6-e1fa-11e4-bb7f-00144feab7de HTTP/1.1" 200 53706 919 919`
 
 	out, ok := extractAccEntry(in)
 	if !ok {
 		t.Fatal("failed to extract values")
 	}
-	if out.Status != 200 {
-		t.Errorf("expected status %d but got %d\n", 200, out.Status)
-	}
+
+	assert.Equal("127.0.0.1", out.RemoteServer)
+	assert.Equal("21/Apr/2015:12:15:34 +0000", out.Timestamp)
+	assert.Equal("GET", out.Method)
+	assert.Equal("/eom-file/all/e09b49d6-e1fa-11e4-bb7f-00144feab7de", out.URL)
+	assert.Equal("HTTP/1.1", out.Protocol)
+	assert.Equal(200, out.Status)
+	assert.Equal(53706, out.LenBytes)
+	assert.Equal("", out.UserAgent)
 	// TODO:
 }
 
 func TestCmsNotifierPostExample(t *testing.T) {
+	assert := assert.New(t)
+
 	in := `172.17.42.1 -  -  [24/Jun/2015:11:09:36 +0000] "POST /notify HTTP/1.1" 500 - "-" "curl/7.42.0" 2197`
 	out, ok := extractAccEntry(in)
-	t.Logf("out status value %v", out.Status)
+
 	if !ok {
 		t.Fatal("failed to extract values")
 	}
-	if out.Status != 500 {
-		t.Errorf("expected status %d but got %d\n", 500, out.Status)
-	}
+
+	assert.Equal("172.17.42.1", out.RemoteServer)
+	assert.Equal("24/Jun/2015:11:09:36 +0000", out.Timestamp)
+	assert.Equal("POST", out.Method)
+	assert.Equal("/notify", out.URL)
+	assert.Equal("HTTP/1.1", out.Protocol)
+	assert.Equal(500, out.Status)
+	assert.Equal(0, out.LenBytes)
+	assert.Equal("curl/7.42.0", out.UserAgent)
 	// TODO:
+}
+
+func TestExtractNeoExample(t *testing.T) {
+	assert := assert.New(t)
+
+	in := `172.24.3.248 - - [18/Aug/2016:09:51:35 +0000] "POST /db/data/cypher HTTP/1.1" 200 51 "-" "neoism" 77`
+	out, ok := extractAccEntry(in)
+
+	if !ok {
+		t.Fatal("failed to extract values")
+	}
+
+	assert.Equal("172.24.3.248", out.RemoteServer)
+	assert.Equal("18/Aug/2016:09:51:35 +0000", out.Timestamp)
+	assert.Equal("POST", out.Method)
+	assert.Equal("/db/data/cypher", out.URL)
+	assert.Equal("HTTP/1.1", out.Protocol)
+	assert.Equal(200, out.Status)
+	assert.Equal(51, out.LenBytes)
+	assert.Equal("neoism", out.UserAgent)
+	assert.Equal(77, out.TimeMs)
+
+	t.Logf("%+v\n", out)
 }
 
 func TestExtractAppEntry(t *testing.T) {

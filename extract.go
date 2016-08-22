@@ -12,8 +12,9 @@ var (
 	re1 = regexp.MustCompile(`^([\d.]+) (\S+) (\S+) \[([\w:/]+\s[+-]\d{4})\] \"(.+?)\" (\d{3}) (\d+|-) (\d+) (\d+)`)
 
 	// 172.31.30.229 - - [19/Jun/2015:09:24:24 +0000] "GET /foo/bar/baz HTTP/1.1" 200 1836 "referrer" "user-agent-123 version 2"
-	re2 = regexp.MustCompile(`^([\d.]+) +(\S+) +(\S+) +\[([\w:/]+\s[+-]\d{4})\] +\"(.+?)\" +(\d{3}) +(\d+|-) +\"(.+?)\" +\"(.+?)\"`)
-	
+	// 172.31.30.229 - - [19/Jun/2015:09:24:24 +0000] "GET /foo/bar/baz HTTP/1.1" 200 1836 "referrer" "user-agent-123 version 2" 1234
+	re2 = regexp.MustCompile(`^([\d.]+) +(\S+) +(\S+) +\[([\w:/]+\s[+-]\d{4})\] +\"(.+?)\" +(\d{3}) +(\d+|-) +\"(.+?)\" +\"(.+?)\"( +(\d+|-))?`)
+
 	// ERROR [2015-08-08 00:18:05,872] com.ft.binaryingester.health.BinaryWriterDependencyHealthCheck:  Exception during dependency version check|[dw-18 - GET /__health]! com.sun.jersey.api.client.ClientHandlerException: java.net.SocketTimeoutException: Read timed out|! at com.sun.jersey.client.apache4.ApacheHttpClient4Handler.handle(ApacheHttpClient4Handler.java:187) ~[app.jar:na]|! at com.sun.jersey.api.client.filter.GZIPContentEncodingFilter.handle(GZIPContentEncodingFilter.java:120) ~[app.jar:na]|! at com.sun.jersey.api.client.Client.handle(Client.java:652) ~[app.jar:na]|! at com.ft.jerseyhttpwrapper.ResilientClient.handle(ResilientClient.java:142) ~[app.jar:na]|! at com.sun.jersey.api.client.WebResource.handle(WebResource.java:682) ~[app.jar:na]|! at com.sun.jersey.api.client.WebResource.access$200(WebResource.java:74) ~[app.jar:na]|! at com.sun.jersey.api.client.WebResource$Builder.get(WebResource.java:509) ~[app.jar:na]|! at com.ft.binaryingester.health.BinaryWriterDependencyHealthCheck.checkAdvanced(BinaryWriterDependencyHealthCheck.java:48) ~[app.jar:na]|! at com.ft.platform.dropwizard.AdvancedHealthCheck.executeAdvanced(AdvancedHealthCheck.java:21) [app.jar:na]|! at com.ft.platform.dropwizard.HealthChecks.runAdvancedHealthChecksIn(HealthChecks.java:22) [app.jar:na]|! at com.ft.platform.dropwizard.AdvancedHealthChecksRunner.run(AdvancedHealthChecksRunner.java:36) [app.jar:na]|! at com.ft.platform.dropwizard.AdvancedHealthCheckServlet.doGet(AdvancedHealthCheckServlet.java:40) [app.jar:na]|! at javax.servlet.http.HttpServlet.service(HttpServlet.java:735) [app.jar:na]|! at javax.servlet.http.HttpServlet.service(HttpServlet.java:848) [app.jar:na]|! at io.dropwizard.jetty.NonblockingServletHolder.handle(NonblockingServletHolder.java:49) [app.jar:na]|! at org.eclipse.jetty.servlet.ServletHandler$CachedChain.doFilter(ServletHandler.java:1515) [app.jar:na]|! at org.eclipse.jetty.servlets.UserAgentFilter.doFilter(UserAgentFilter.java:83) [app.jar:na]|! at org.eclipse.jetty.servlets.GzipFilter.doFilter(GzipFilter.java:34
 	re4 = regexp.MustCompile(`([A-Z]{4,5})\s{1,2}\[([0-9\-:,\s]*)\] (.*)`)
 
@@ -40,16 +41,21 @@ func Extract(message string) (v interface{}, extracted bool) {
 	return extractAppEntry(message)
 }
 
-func extractAccEntry(msg string) (ent accessEntry, extracted bool) {
-	ent = accessEntry{}
-	matches := re1.FindStringSubmatch(msg)
-	extractFields(matches, &ent, &extracted)
-	matches = re2.FindStringSubmatch(msg)
-	extractFields(matches, &ent, &extracted)
+func extractAccEntry(message string) (ent accessEntry, extracted bool) {
+	v, extracted := extractAccEntryRE1(message)
+	if extracted {
+		return v, extracted
+	}
+	v, extracted = extractAccEntryRE2(message)
+	if extracted {
+		return v, extracted
+	}
 	return
 }
 
-func extractFields(matches []string, ent *accessEntry, extracted *bool) {
+func extractAccEntryRE1(msg string) (ent accessEntry, extracted bool) {
+	ent = accessEntry{}
+	matches := re1.FindStringSubmatch(msg)
 	if len(matches) == 10 {
 		ent.RemoteServer = matches[1]
 		//todo 2 & 3
@@ -58,8 +64,27 @@ func extractFields(matches []string, ent *accessEntry, extracted *bool) {
 		ent.Status = atoi(matches[6])
 		ent.LenBytes = atoi(matches[7])
 		// todo 8,9,10
-		*extracted = true
+		extracted = true
 	}
+	return
+}
+
+func extractAccEntryRE2(msg string) (ent accessEntry, extracted bool) {
+	ent = accessEntry{}
+	matches := re2.FindStringSubmatch(msg)
+	if len(matches) == 12 {
+		ent.RemoteServer = matches[1]
+		//todo 2 & 3
+		ent.Timestamp = matches[4]
+		ent.Method, ent.URL, ent.Protocol = methodURLProtocol(matches[5])
+		ent.Status = atoi(matches[6])
+		ent.LenBytes = atoi(matches[7])
+		// todo 8
+		ent.UserAgent = matches[9]
+		ent.TimeMs = atoi(matches[11])
+		extracted = true
+	}
+	return
 }
 
 func extractAppEntry(msg string) (ent appEntry, extracted bool) {
@@ -112,7 +137,7 @@ func methodURLProtocol(s string) (string, string, string) {
 }
 
 func atoi(s string) int {
-	if s == "-" {
+	if s == "-" || s == "" {
 		return 0
 	}
 	i, err := strconv.Atoi(s)
