@@ -175,6 +175,59 @@ func TestExtractPamEntity(t *testing.T) {
 	}
 }
 
+func TestExtractOldPamEntity(t *testing.T) {
+	var tests = []struct {
+		message       string
+		UUID          string
+		TransactionID string
+		PublishDate   string
+		PublishOk     string
+		Duration      string
+		Endpoint      string
+	}{
+		{`[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 readEnv=prod-uk transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content`,
+			"08d30fb4-a7b3-11e5-955c-1e1d6de94879",
+			"tid_28pbiavoqs",
+			"1450692093737000000",
+			"true",
+			"6",
+			"content"},
+		{`[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 readEnv=prod-uk transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=notifications-push`,
+			"08d30fb4-a7b3-11e5-955c-1e1d6de94879",
+			"tid_28pbiavoqs",
+			"1450692093737000000",
+			"true",
+			"6",
+			"notifications-push"},
+	}
+
+	for _, test := range tests {
+		pamEntity, ok := extractPamEntity(test.message)
+		if !ok {
+			t.Fatalf("failed to extract values '%s'", test.message)
+		}
+		if pamEntity.UUID != test.UUID {
+			t.Errorf("message: %s\nexpected UUID %s, actual UUID %s", test.message, test.UUID, pamEntity.UUID)
+		}
+		if pamEntity.TransactionID != test.TransactionID {
+			t.Errorf("message: %s\nexpected transaction_id %s, actual transaction_id %s", test.message, test.TransactionID, pamEntity.TransactionID)
+		}
+		if pamEntity.PublishDate != test.PublishDate {
+			t.Errorf("message: %s\nexpected publishDate %s, actual publishDate %s", test.message, test.PublishDate, pamEntity.PublishDate)
+		}
+		if pamEntity.PublishOk != test.PublishOk {
+			t.Errorf("message: %s\nexpected publishOk %s, actual publishOk %s", test.message, test.PublishOk, pamEntity.PublishOk)
+		}
+		if pamEntity.Duration != test.Duration {
+			t.Errorf("message: %s\nexpected duration %s, actual duration %s", test.message, test.Duration, pamEntity.Duration)
+		}
+		if pamEntity.Endpoint != test.Endpoint {
+			t.Errorf("message: %s\nexpected endpoint %s, actual endpoint %s", test.message, test.Endpoint, pamEntity.Endpoint)
+		}
+	}
+}
+
+
 func TestExtractVarnishEntity(t *testing.T) {
 	var tests = []struct {
 		message   string
