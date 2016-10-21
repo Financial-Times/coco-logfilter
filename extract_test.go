@@ -231,18 +231,18 @@ func TestExtractSlaPamEntity(t *testing.T) {
 	var tests = []struct {
 		message        string
 		UUID           string
-		MetPublishSla  string
+		MetPublishSLA  string
 		OkEnvironments string
 		TransactionID  string
 		PublishDate    string
 	}{
-		{`[slaMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 metPublishSla=true okEnvironments=[prod-uk,prod-us] transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 duration=6 endpoint=content`,
+		{`[slaMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 metPublishSLA=true okEnvironments=[prod-uk,prod-us] transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 duration=6 endpoint=content`,
 			"08d30fb4-a7b3-11e5-955c-1e1d6de94879",
 			"true",
 			"[prod-uk,prod-us]",
 			"tid_28pbiavoqs",
 			"1450692093737000000"},
-		{`[slaMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 metPublishSla=false okEnvironments=[prod-uk] transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 duration=6 endpoint=notifications-push`,
+		{`[slaMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 metPublishSLA=false okEnvironments=[prod-uk] transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 duration=6 endpoint=notifications-push`,
 			"08d30fb4-a7b3-11e5-955c-1e1d6de94879",
 			"false",
 			"[prod-uk]",
@@ -258,8 +258,8 @@ func TestExtractSlaPamEntity(t *testing.T) {
 		if pamEntity.UUID != test.UUID {
 			t.Errorf("message: %s\nexpected UUID %s, actual UUID %s", test.message, test.UUID, pamEntity.UUID)
 		}
-		if pamEntity.MetPublishSla != test.MetPublishSla {
-			t.Errorf("message: %s\nexpected metPublishSla %s, actual metPublishSla %s", test.message, test.MetPublishSla, pamEntity.MetPublishSla)
+		if pamEntity.MetPublishSLA != test.MetPublishSLA {
+			t.Errorf("message: %s\nexpected metPublishSLA %s, actual metPublishSLA %s", test.message, test.MetPublishSLA, pamEntity.MetPublishSLA)
 		}
 		if pamEntity.OkEnvironments != test.OkEnvironments {
 			t.Errorf("message: %s\nexpected okEnvironments %s, actual okEnvironments %s", test.message, test.OkEnvironments, pamEntity.OkEnvironments)
