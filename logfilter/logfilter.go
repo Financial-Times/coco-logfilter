@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"io"
 	"os"
 	"regexp"
@@ -54,8 +53,7 @@ var (
 var environmentTag *string
 
 func main() {
-	environmentTag = flag.String("environment", "", "set the environment tag to use in the outputted json")
-	flag.Parse()
+	*environmentTag = os.Getenv("ENV")
 
 	dec := json.NewDecoder(os.Stdin)
 	enc := json.NewEncoder(os.Stdout)

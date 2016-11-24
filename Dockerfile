@@ -10,4 +10,4 @@ RUN apk --update add go git\
   && apk del go git \
   && rm -rf $GOPATH /var/cache/apk/*
 
-CMD /coco-logfilter -environment=$ENV
+CMD exec /coco-logfilter
