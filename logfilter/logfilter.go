@@ -50,7 +50,7 @@ var (
 	}
 )
 
-var environmentTag *string
+var environmentTag *string = new(string)
 
 func main() {
 	*environmentTag = os.Getenv("ENV")
