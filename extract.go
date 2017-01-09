@@ -22,7 +22,7 @@ var (
 	pamRegex = regexp.MustCompile(`UUID=([\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\d*) publishOk=(\w*) duration=(\d*) endpoint=([\w-]*)`)
 
 	// 172.17.0.1 usr 13/Jun/2016:13:36:23 /test 200 148866 "curl/7.49.1"
-	varnishRegex = regexp.MustCompile(`^[\d\.\,\s]+\s+(\S+)\s+[\w:\/]+\s+(\S+)\s+([0-9]{3})\s+([0-9\.]+)\s+\"([\S\s]+)\"`)
+	varnishRegex = regexp.MustCompile(`^[\d\.\,\s]+\s+(\S+)\s+[\w:\/]+\s+(\S+)\s+([0-9]{3})\s+([0-9\.]+)\s+\"([\S\s]+)\"\stransaction_id=([\S]+)`)
 )
 
 func Extract(message string) (v interface{}, extracted bool) {
@@ -117,12 +117,13 @@ func extractPamEntity(msg string) (pam pamEntity, extracted bool) {
 func extractVarnishEntity(msg string) (varnish varnishEntity, extracted bool) {
 	varnish = varnishEntity{}
 	matches := varnishRegex.FindStringSubmatch(msg)
-	if len(matches) == 6 {
+	if len(matches) == 7 {
 		varnish.AuthUser = matches[1]
 		varnish.URI = matches[2]
 		varnish.Status = matches[3]
 		varnish.Resptime = matches[4]
 		varnish.UserAgent = matches[5]
+		varnish.TransactionID = matches[6]
 		extracted = true
 	}
 	return
@@ -178,9 +179,10 @@ type pamEntity struct {
 }
 
 type varnishEntity struct {
-	AuthUser  string `json:"authuser,omitempty"`
-	URI       string `json:"uri,omitempty"`
-	Status    string `json:"status,omitempty"`
-	Resptime  string `json:"resptime,omitempty"`
-	UserAgent string `json:"useragent,omitempty"`
+	AuthUser      string `json:"authuser,omitempty"`
+	URI           string `json:"uri,omitempty"`
+	Status        string `json:"status,omitempty"`
+	Resptime      string `json:"resptime,omitempty"`
+	UserAgent     string `json:"useragent,omitempty"`
+	TransactionID string `json:"transaction_id,omitempty"`
 }

@@ -171,19 +171,21 @@ func TestExtractPamEntity(t *testing.T) {
 
 func TestExtractVarnishEntity(t *testing.T) {
 	var tests = []struct {
-		message   string
-		AuthUser  string
-		URI       string
-		Status    string
-		Resptime  string
-		UserAgent string
+		message       string
+		AuthUser      string
+		URI           string
+		Status        string
+		Resptime      string
+		UserAgent     string
+		TransactionID string
 	}{
-		{`82.136.1.214, 172.24.88.199 next 14/Jun/2016:08:24:42 /__enriched-content-read-api/enrichedcontent/409ba29e-b7f8-417f-9847-f3332aa064a6 200 65526 "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"`,
+		{`82.136.1.214, 172.24.88.199 next 14/Jun/2016:08:24:42 /__enriched-content-read-api/enrichedcontent/409ba29e-b7f8-417f-9847-f3332aa064a6 200 65526 "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36" transaction_id=tid_pete-doing-some-tests hit`,
 			"next",
 			"/__enriched-content-read-api/enrichedcontent/409ba29e-b7f8-417f-9847-f3332aa064a6",
 			"200",
 			"65526",
-			"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"},
+			"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36",
+			"tid_pete-doing-some-tests"},
 	}
 
 	for _, test := range tests {
