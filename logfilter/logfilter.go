@@ -37,6 +37,9 @@ var (
 		"docker.service":             true,
 		"diamond.service":            true,
 		"logstash-forwarder.service": true,
+		"kubelet.service": true,
+		"flanneld.service": true,
+
 	}
 
 	blacklistedStrings = []string{
