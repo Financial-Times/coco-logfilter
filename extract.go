@@ -20,10 +20,14 @@ var (
 
 	// This is for backwards compatability, until we can rip out the old SLA dashboard
 	//[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content
-	pamRegexOLD = regexp.MustCompile(`UUID=([\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\d*) publishOk=(\w*) duration=(\d*) endpoint=([\w-]*)`)	//[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content
+	pamRegexOLD = regexp.MustCompile(`UUID=([\da-f-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\d*) publishOk=(\w*) duration=(\d*) endpoint=([\w-]*)`) //[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content
 
 	//[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 readEnv=prod-uk transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=content
 	pamRegex = regexp.MustCompile(`UUID=([\da-f-]*) readEnv=([\w-]*) transaction_id=(tid_[a-z0-9]*) publishDate=(\d*) publishOk=(\w*) duration=(\d*) endpoint=([\w-]*)`)
+
+	//[slaMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 metPublishSla=true okEnvironments=[prod-uk,prod-us] transaction_id=tid_28pbiavoqs publishDate=1450692093737000000
+	//[slaMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 metPublishSla=false okEnvironments=[prod-uk] transaction_id=tid_28pbiavoqs publishDate=1450692093737000000
+	slaPamRegex = regexp.MustCompile(`UUID=([\da-f-]*) metPublishSLA=(\w*) okEnvironments=(\[[\w,\-]*\]) transaction_id=(tid_[a-z0-9]*) publishDate=(\d*)`)
 
 	// 172.17.0.1 usr 13/Jun/2016:13:36:23 /test 200 148866 "curl/7.49.1"
 	varnishRegex = regexp.MustCompile(`^[\d\.\,\s]+\s+(\S+)\s+[\w:\/]+\s+(\S+)\s+([0-9]{3})\s+([0-9\.]+)\s+\"([\S\s]+)\"\stransaction_id=([\S]+)`)
@@ -122,7 +126,6 @@ func extractOldPamEntity(msg string) (pam pamEntity, extracted bool) {
 	return
 }
 
-
 func extractPamEntity(msg string) (pam pamEntity, extracted bool) {
 	pam = pamEntity{}
 	matches := pamRegex.FindStringSubmatch(msg)
@@ -134,6 +137,21 @@ func extractPamEntity(msg string) (pam pamEntity, extracted bool) {
 		pam.PublishOk = matches[5]
 		pam.Duration = matches[6]
 		pam.Endpoint = matches[7]
+		extracted = true
+	}
+	return
+}
+
+func extractSlaPamEntity(msg string) (entity slaPamEntity, extracted bool) {
+	entity = slaPamEntity{}
+	matches := slaPamRegex.FindStringSubmatch(msg)
+	log.Printf("%v", matches)
+	if len(matches) == 6 {
+		entity.UUID = matches[1]
+		entity.MetPublishSLA = matches[2]
+		entity.OkEnvironments = matches[3]
+		entity.TransactionID = matches[4]
+		entity.PublishDate = matches[5]
 		extracted = true
 	}
 	return
@@ -202,6 +220,14 @@ type pamEntity struct {
 	PublishOk     string `json:"publishOk"`
 	Duration      string `json:"duration"`
 	Endpoint      string `json:"endpoint"`
+}
+
+type slaPamEntity struct {
+	UUID           string `json:"uuid"`
+	MetPublishSLA  string `json:"metPublishSLA"`
+	OkEnvironments string `json:"okEnvironments"`
+	TransactionID  string `json:"transaction_id"`
+	PublishDate    string `json:"publishDate"`
 }
 
 type varnishEntity struct {
