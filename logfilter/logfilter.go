@@ -34,7 +34,7 @@ var (
 
 	blacklistedUnits = map[string]bool{
 		"splunk-forwarder.service":   true,
-		"docker.service":             true,
+		//"docker.service":             true,
 		"diamond.service":            true,
 		"logstash-forwarder.service": true,
 		"kubelet.service": true,
@@ -44,6 +44,10 @@ var (
 
 	blacklistedStrings = []string{
 		"transaction_id=SYNTHETIC-REQ",
+	}
+
+	blacklistedSyslogIds = []string{
+		"dockerd", //
 	}
 
 	propertyMapping = map[string]string{
@@ -72,6 +76,13 @@ func main() {
 		unit := m["_SYSTEMD_UNIT"]
 		if unitString, ok := unit.(string); ok {
 			if blacklistedUnits[unitString] {
+				continue
+			}
+		}
+
+		syslogId := m["SYSLOG_IDENTIFIER"]
+		if syslogIdString, ok := syslogId.(string); ok {
+			if blacklistedSyslogIds[syslogIdString] {
 				continue
 			}
 		}
