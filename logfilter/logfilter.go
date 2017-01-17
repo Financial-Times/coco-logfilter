@@ -46,8 +46,8 @@ var (
 		"transaction_id=SYNTHETIC-REQ",
 	}
 
-	blacklistedSyslogIds = []string{
-		"dockerd", //
+	blacklistedSyslogIds = map[string]bool{
+		"dockerd": true,
 	}
 
 	propertyMapping = map[string]string{
