@@ -50,6 +50,12 @@ var (
 		"dockerd": true,
 	}
 
+	blacklistedContainerTags = []string{
+		"gcr.io/google_containers/heapster",
+		"gcr.io/google_containers/kubedns-amd64",
+		"gcr.io/google_containers/addon-resizer",
+	}
+
 	propertyMapping = map[string]string{
 		"_SYSTEMD_UNIT": "SYSTEMD_UNIT",
 		"_MACHINE_ID":   "MACHINE_ID",
@@ -87,9 +93,16 @@ func main() {
 			}
 		}
 
+		containerTag := m["CONTAINER_TAG"]
+		if containerTagString, ok := containerTag.(string); ok {
+			if (containsBlacklistedString(containerTagString, blacklistedContainerTags)) {
+				continue
+			}
+		}
+
 		message := fixBytesToString(m["MESSAGE"]).(string)
 
-		if containsBlacklistedString(message) {
+		if containsBlacklistedString(message, blacklistedStrings) {
 			continue
 		}
 
@@ -100,7 +113,7 @@ func main() {
 	}
 }
 
-func containsBlacklistedString(message string) bool {
+func containsBlacklistedString(message string, blacklistedStrings []string) bool {
 	for _, blacklistedString := range blacklistedStrings {
 		if strings.Contains(message, blacklistedString) {
 			return true
