@@ -116,6 +116,20 @@ func TestTransactionId(t *testing.T) {
 	}
 }
 
+func TestNotificationsTransactionId(t *testing.T) {
+	message := "INFO  [2017-01-19 12:05:13,478] com.ft.api.util.transactionid.TransactionIdFilter: transaction_id=tid_pam_notifications_pull_2017-01-19T12:05:13Z [REQUEST HANDLED] uri=/content/notifications time_ms=2 status=200 exception_was_thrown=false [dw-1968]"
+	m := map[string]interface{}{
+		"MESSAGE": message,
+	}
+	munge(m, message)
+
+	expected := "tid_pam_notifications_pull_2017-01-19T12:05:13Z"
+	actual := m["transaction_id"]
+	if actual != expected {
+		t.Errorf("expected %v but got %v", expected, actual)
+	}
+}
+
 func TestNoTransactionId(t *testing.T) {
 	message := "foo baz baz transazzzction_id=transid_a-b banana"
 	m := map[string]interface{}{
