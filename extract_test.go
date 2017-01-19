@@ -192,9 +192,9 @@ func TestExtractOldPamEntity(t *testing.T) {
 			"true",
 			"6",
 			"content"},
-		{`[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=notifications-push`,
+		{`[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_pam_notifications_pull_2017-01-18T12:21:49Z publishDate=1450692093737000000 publishOk=true duration=6 endpoint=notifications-push`,
 			"08d30fb4-a7b3-11e5-955c-1e1d6de94879",
-			"tid_28pbiavoqs",
+			"tid_pam_notifications_pull_2017-01-18T12:21:49Z",
 			"1450692093737000000",
 			"true",
 			"6",
@@ -226,7 +226,6 @@ func TestExtractOldPamEntity(t *testing.T) {
 		}
 	}
 }
-
 
 func TestExtractVarnishEntity(t *testing.T) {
 	var tests = []struct {
