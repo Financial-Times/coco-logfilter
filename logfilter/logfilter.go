@@ -129,6 +129,9 @@ func munge(m map[string]interface{}, message string) {
 		m["environment"] = *environmentTag
 	}
 
+	m["POD_NAME"] = extractPodId(m["CONTAINER_NAME"])
+	m["SERVICE_NAME"] = extractServiceName(m["CONTAINER_NAME"])
+
 	message = fixNewLines(message)
 	m["MESSAGE"] = message
 
@@ -155,6 +158,36 @@ func munge(m map[string]interface{}, message string) {
 	for k, v := range entMap {
 		m[k] = v
 	}
+}
+
+func extractServiceName(containerTag interface{}) string {
+	containerNameSplitByUnderscores := splitByUnderscores(containerTag)
+
+	if len(containerNameSplitByUnderscores) >= 1 {
+		stringArray := strings.Split(containerNameSplitByUnderscores[1], ".")
+		return stringArray[0]
+	}
+
+	return ""
+}
+
+func extractPodId(containerTag interface{}) string {
+	containerNameSplitByUnderscores := splitByUnderscores(containerTag)
+
+	if len(containerNameSplitByUnderscores) >= 2 {
+		return containerNameSplitByUnderscores[2]
+	}
+
+	return ""
+}
+
+func splitByUnderscores(i interface{}) []string {
+	if s, ok := i.(string); ok {
+		items := strings.Split(s, "_")
+		return items
+	}
+
+	return []string{}
 }
 
 var trans_regex = regexp.MustCompile(`\btransaction_id=([\w-]*)`)
