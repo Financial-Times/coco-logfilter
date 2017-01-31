@@ -129,8 +129,15 @@ func munge(m map[string]interface{}, message string) {
 		m["environment"] = *environmentTag
 	}
 
-	m["POD_NAME"] = extractPodId(m["CONTAINER_NAME"])
-	m["SERVICE_NAME"] = extractServiceName(m["CONTAINER_NAME"])
+	podName := extractPodName(m["CONTAINER_NAME"])
+	if podName != "" {
+		m["POD_NAME"] = podName
+	}
+
+	serviceName := extractServiceName(m["CONTAINER_NAME"])
+	if serviceName != "" && serviceName != "POD" {
+		m["SERVICE_NAME"] = serviceName
+	}
 
 	message = fixNewLines(message)
 	m["MESSAGE"] = message
@@ -171,7 +178,7 @@ func extractServiceName(containerTag interface{}) string {
 	return ""
 }
 
-func extractPodId(containerTag interface{}) string {
+func extractPodName(containerTag interface{}) string {
 	containerNameSplitByUnderscores := splitByUnderscores(containerTag)
 
 	if len(containerNameSplitByUnderscores) >= 2 {
