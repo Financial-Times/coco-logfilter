@@ -1,6 +1,7 @@
 package logfilter
 
 import (
+	"encoding/json"
 	"log"
 	"regexp"
 	"strconv"
@@ -46,7 +47,20 @@ func Extract(message string) (v interface{}, extracted bool) {
 	if extracted {
 		return v, extracted
 	}
+	v, extracted = extractJsonEntity(message)
+	if extracted {
+		return v, extracted
+	}
 	return extractAppEntry(message)
+}
+
+func extractJsonEntity(message string) (map[string]string, bool) {
+	res := make(map[string]string)
+	err := json.Unmarshal([]byte(message), &res)
+	if err != nil {
+		return nil, false
+	}
+	return res, true
 }
 
 func extractAccEntry(message string) (ent accessEntry, extracted bool) {
