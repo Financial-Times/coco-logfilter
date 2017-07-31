@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFixBytesToString(t *testing.T) {
@@ -103,43 +106,45 @@ func TestEnvTag(t *testing.T) {
 }
 
 func TestTransactionId(t *testing.T) {
-	message := "foo baz baz transaction_id=transid_a-b banana"
-	m := map[string]interface{}{
-		"MESSAGE": message,
+	testCases := []struct {
+		name     string
+		message  string
+		expected string
+	}{
+		{
+			name:     "standard API call",
+			message:  "foo baz baz transaction_id=transid_a-b banana",
+			expected: "transid_a-b",
+		},
+		{
+			name:     "message without transaction id",
+			message:  "foo baz baz transzzzaction_id=transid_a-b banana",
+			expected: "",
+		},
+		{
+			name:     "PAM notifications feed transaction id may contain colon character",
+			message:  "INFO  [2017-01-19 12:05:13,478] com.ft.api.util.transactionid.TransactionIdFilter: transaction_id=tid_pam_notifications_pull_2017-01-19T12:05:13Z [REQUEST HANDLED] uri=/content/notifications time_ms=2 status=200 exception_was_thrown=false [dw-1968]",
+			expected: "tid_pam_notifications_pull_2017-01-19T12:05:13Z",
+		},
+		{
+			name:     "transaction_id should not include parenthesis or quotes",
+			message:  "foo baz baz \"My User Agent (transaction_id=transid_a-b)\" banana",
+			expected: "transid_a-b",
+		},
 	}
-	munge(m, message)
 
-	expected := "transid_a-b"
-	actual := m["transaction_id"]
-	if actual != expected {
-		t.Errorf("expected %v but got %v", expected, actual)
-	}
-}
+	for _, c := range testCases {
+		m := map[string]interface{}{
+			"MESSAGE": c.message,
+		}
+		munge(m, c.message)
 
-func TestNotificationsTransactionId(t *testing.T) {
-	message := "INFO  [2017-01-19 12:05:13,478] com.ft.api.util.transactionid.TransactionIdFilter: transaction_id=tid_pam_notifications_pull_2017-01-19T12:05:13Z [REQUEST HANDLED] uri=/content/notifications time_ms=2 status=200 exception_was_thrown=false [dw-1968]"
-	m := map[string]interface{}{
-		"MESSAGE": message,
-	}
-	munge(m, message)
-
-	expected := "tid_pam_notifications_pull_2017-01-19T12:05:13Z"
-	actual := m["transaction_id"]
-	if actual != expected {
-		t.Errorf("expected %v but got %v", expected, actual)
-	}
-}
-
-func TestNoTransactionId(t *testing.T) {
-	message := "foo baz baz transazzzction_id=transid_a-b banana"
-	m := map[string]interface{}{
-		"MESSAGE": message,
-	}
-	munge(m, message)
-
-	actual := m["transaction_id"]
-	if actual != nil {
-		t.Errorf("expected nil but got %v", actual)
+		actual, found := m["transaction_id"]
+		if len(c.expected) == 0 {
+			assert.False(t, found, fmt.Sprintf("expected no transaction_id for %s", c.name))
+		} else {
+			assert.Equal(t, c.expected, actual, fmt.Sprintf("transaction_id for %s", c.name))
+		}
 	}
 }
 
