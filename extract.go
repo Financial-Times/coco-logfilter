@@ -2,6 +2,7 @@ package logfilter
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"regexp"
 	"strconv"
@@ -63,6 +64,7 @@ func extractJsonEntity(message string) (map[string]interface{}, bool) {
 	//the mdc field is added by java json logging library and it is not necessary,
 	// so it needs to be removed
 	delete(res, "mdc")
+	fmt.Println("Extracted as json")
 	return res, true
 }
 
