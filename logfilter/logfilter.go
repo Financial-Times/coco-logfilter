@@ -132,7 +132,7 @@ func munge(m map[string]interface{}, message string) {
 	}
 }
 
-var trans_regex = regexp.MustCompile(`\btransaction_id=([\S]+)`)
+var trans_regex = regexp.MustCompile(`\btransaction_id=([A-Za-z0-9\-_:]+)`)
 
 func extractTransactionId(message string) string {
 	matches := trans_regex.FindAllStringSubmatch(message, -1)
