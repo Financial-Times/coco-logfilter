@@ -54,12 +54,15 @@ func Extract(message string) (v interface{}, extracted bool) {
 	return extractAppEntry(message)
 }
 
-func extractJsonEntity(message string) (map[string]string, bool) {
-	res := make(map[string]string)
+func extractJsonEntity(message string) (map[string]interface{}, bool) {
+	res := make(map[string]interface{})
 	err := json.Unmarshal([]byte(message), &res)
 	if err != nil {
 		return nil, false
 	}
+	//the mdc field is added by java json logging library and it is not necessary,
+	// so it needs to be removed
+	delete(res, "mdc")
 	return res, true
 }
 
