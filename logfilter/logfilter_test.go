@@ -5,7 +5,10 @@ import (
 	"reflect"
 	"testing"
 
+	"encoding/json"
+	"github.com/Financial-Times/coco-logfilter"
 	"github.com/stretchr/testify/assert"
+	"strings"
 )
 
 func TestFixBytesToString(t *testing.T) {
@@ -164,4 +167,47 @@ func TestContainsBlacklistedStringWithoutBlacklistedString(t *testing.T) {
 		t.Error("Detected black listed string when there was none")
 	}
 
+}
+
+func TestClusterStatus(t *testing.T) {
+	trueVar := true
+	falseVar := false
+
+	testCases := []struct {
+		jsonString string
+		readDNS    string
+		tag        string
+		expected   *bool
+	}{
+		{
+			jsonString: `{"@time":"2017-09-12T14:19:28.199162596Z","HOSTNAME":"ip-172-24-159-194.eu-west-1.compute.internal","MACHINE_ID":"f064489d498342d09326964a99a176d4","MESSAGE":"{\"@time\":\"2017-09-12T14:19:28.199162596Z\",\"content_type\":\"Suggestions\",\"event\":\"SaveNeo4j\",\"level\":\"info\",\"monitoring_event\":\"true\",\"msg\":\"%s successfully written in Neo4jSuggestions\",\"service_name\":\"suggestions-rw-neo4j\",\"transaction_id\":\"tid_u7pkkludzd\",\"uuid\":\"a3f63cda-97af-11e7-b83c-9588e51488a0\"}","SYSTEMD_UNIT":"suggestions-rw-neo4j@1.service","_SYSTEMD_INVOCATION_ID":"13adf9bbb0504698a01386fe025d085a","content_type":"Suggestions","environment":"xp","event":"SaveNeo4j","level":"info","monitoring_event":"true","msg":"%s successfully written in Neo4jSuggestions","platform":"up-coco","service_name":"suggestions-rw-neo4j","transaction_id":"tid_u7pkkludzd","uuid":"a3f63cda-97af-11e7-b83c-9588e51488a0"}`,
+			readDNS:    "google.com",
+			tag:        "ns",
+			expected:   &trueVar,
+		},
+		{
+			jsonString: `{"@time":"2017-09-12T14:19:28.199162596Z","HOSTNAME":"ip-172-24-159-194.eu-west-1.compute.internal","MACHINE_ID":"f064489d498342d09326964a99a176d4","MESSAGE":"{\"@time\":\"2017-09-12T14:19:28.199162596Z\",\"content_type\":\"Suggestions\",\"event\":\"SaveNeo4j\",\"level\":\"info\",\"monitoring_event\":\"true\",\"msg\":\"%s successfully written in Neo4jSuggestions\",\"service_name\":\"suggestions-rw-neo4j\",\"transaction_id\":\"tid_u7pkkludzd\",\"uuid\":\"a3f63cda-97af-11e7-b83c-9588e51488a0\"}","SYSTEMD_UNIT":"suggestions-rw-neo4j@1.service","_SYSTEMD_INVOCATION_ID":"13adf9bbb0504698a01386fe025d085a","content_type":"Suggestions","environment":"xp","event":"SaveNeo4j","level":"info","monitoring_event":"true","msg":"%s successfully written in Neo4jSuggestions","platform":"up-coco","service_name":"suggestions-rw-neo4j","transaction_id":"tid_u7pkkludzd","uuid":"a3f63cda-97af-11e7-b83c-9588e51488a0"}`,
+			readDNS:    "google.com",
+			tag:        "invalid",
+			expected:   &falseVar,
+		},
+		{
+			jsonString: `{"@time":"2017-09-12T14:19:28.199162596Z","HOSTNAME":"ip-172-24-159-194.eu-west-1.compute.internal","MACHINE_ID":"f064489d498342d09326964a99a176d4","MESSAGE":"{\"@time\":\"2017-09-12T14:19:28.199162596Z\",\"content_type\":\"Suggestions\",\"event\":\"SaveNeo4j\",\"level\":\"info\",\"msg\":\"%s successfully written in Neo4jSuggestions\",\"service_name\":\"suggestions-rw-neo4j\",\"transaction_id\":\"tid_u7pkkludzd\",\"uuid\":\"a3f63cda-97af-11e7-b83c-9588e51488a0\"}","SYSTEMD_UNIT":"suggestions-rw-neo4j@1.service","_SYSTEMD_INVOCATION_ID":"13adf9bbb0504698a01386fe025d085a","content_type":"Suggestions","environment":"xp","event":"SaveNeo4j","level":"info","msg":"%s successfully written in Neo4jSuggestions","platform":"up-coco","service_name":"suggestions-rw-neo4j","transaction_id":"tid_u7pkkludzd","uuid":"a3f63cda-97af-11e7-b83c-9588e51488a0"}`,
+			readDNS:    "google.com",
+			tag:        "ns",
+			expected:   nil,
+		},
+	}
+
+	for _, c := range testCases {
+		mc = logfilter.NewMonitoredClusterService(c.readDNS, c.tag)
+		m := make(map[string]interface{})
+		json.NewDecoder(strings.NewReader(c.jsonString)).Decode(&m)
+		processMessage(m)
+		if c.expected == nil {
+			assert.Nil(t, m["active_cluster"])
+		} else {
+			assert.Equal(t, *c.expected, m["active_cluster"])
+		}
+	}
 }
