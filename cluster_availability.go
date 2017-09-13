@@ -11,8 +11,8 @@ import (
 const CACHE_TIME = 30
 
 type Cluster struct {
-	readDNS string
-	tag     string
+	dnsAddress string
+	tag        string
 }
 
 type ClusterService interface {
@@ -25,15 +25,15 @@ type MonitoredClusterService struct {
 	cacheTimestamp time.Time
 }
 
-func NewMonitoredClusterService(readDNS string, tag string) MonitoredClusterService {
-	instance := Cluster{readDNS: readDNS, tag: tag}
+func NewMonitoredClusterService(dnsAddress string, tag string) MonitoredClusterService {
+	instance := Cluster{dnsAddress: dnsAddress, tag: tag}
 	return MonitoredClusterService{instance: instance}
 }
 
 func (mc MonitoredClusterService) IsActive() (bool, error) {
-	// if the read address contains the cluster tag (and implicitly the region)
+	// if the DNS address contains the cluster tag (and implicitly the region)
 	// than this means that there is no failover mechanism in place
-	if strings.Contains(mc.instance.readDNS, mc.instance.tag) {
+	if strings.Contains(mc.instance.dnsAddress, mc.instance.tag) {
 		return true, nil
 	}
 
@@ -42,12 +42,11 @@ func (mc MonitoredClusterService) IsActive() (bool, error) {
 	}
 
 	resolver := dnsr.New(5)
-	cNames := resolver.Resolve(mc.instance.readDNS, "CNAME")
+	cNames := resolver.Resolve(mc.instance.dnsAddress, "CNAME")
 	mc.cacheTimestamp = time.Now()
 	if len(cNames) > 0 {
-		isActive := strings.Contains(cNames[0].Value, mc.instance.tag)
-		mc.cachedStatus = isActive
-		return isActive, nil
+		mc.cachedStatus = strings.Contains(cNames[0].Value, mc.instance.tag)
+		return mc.cachedStatus, nil
 	}
 	mc.cachedStatus = false
 	return false, errors.New("address could not be resolved, maybe it is invalid")

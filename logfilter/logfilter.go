@@ -53,15 +53,15 @@ var (
 )
 
 var environmentTag *string = new(string)
-var readDNS *string = new(string)
+var dnsAddress *string = new(string)
 
 var mc logfilter.ClusterService
 
 func main() {
 	*environmentTag = os.Getenv("ENV")
-	*readDNS = os.Getenv("READ_ADDRESS")
+	*dnsAddress = os.Getenv("DNS_ADDRESS")
 
-	mc = logfilter.NewMonitoredClusterService(*readDNS, *environmentTag)
+	mc = logfilter.NewMonitoredClusterService(*dnsAddress, *environmentTag)
 
 	dec := json.NewDecoder(os.Stdin)
 	enc := json.NewEncoder(os.Stdout)
@@ -145,7 +145,7 @@ func munge(m map[string]interface{}, message string) {
 	}
 
 	if m["monitoring_event"] == "true" {
-		m["active_cluster"] = getClusterStatus()
+		m["active_cluster"], _ = mc.IsActive()
 	}
 }
 
@@ -200,12 +200,4 @@ func renameProperties(m map[string]interface{}) {
 		}
 	}
 
-}
-
-func getClusterStatus() bool {
-	status, err := mc.IsActive()
-	if err != nil {
-		//todo what now?
-	}
-	return status
 }

@@ -25,6 +25,7 @@ _testmain.go
 /.project
 coco-logfilter
 *.idea
+*.iml
 
 /vendor/*/
 !/vendor/vendor.json
