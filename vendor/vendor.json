@@ -10,6 +10,18 @@
 			"revisionTime": "2017-01-30T11:31:45Z"
 		},
 		{
+			"checksumSHA1": "70sxoSGdHabgvcjD1QLcNAes1PM=",
+			"path": "github.com/domainr/dnsr",
+			"revision": "6b8ec6341394c43449c0bf0d05c10d8022f4676a",
+			"revisionTime": "2017-08-30T15:24:59Z"
+		},
+		{
+			"checksumSHA1": "Ewgc6lPiuDZVOf1407rxzSgAOag=",
+			"path": "github.com/miekg/dns",
+			"revision": "e4205768578dc90c2669e75a2f8a8bf77e3083a4",
+			"revisionTime": "2017-08-18T13:14:42Z"
+		},
+		{
 			"checksumSHA1": "+oyIJwPyeof36XCkY8awrNfxaNM=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
 			"path": "github.com/pmezard/go-difflib/difflib",

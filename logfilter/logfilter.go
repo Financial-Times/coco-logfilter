@@ -53,9 +53,15 @@ var (
 )
 
 var environmentTag *string = new(string)
+var dnsAddress *string = new(string)
+
+var mc logfilter.ClusterService
 
 func main() {
 	*environmentTag = os.Getenv("ENV")
+	*dnsAddress = os.Getenv("DNS_ADDRESS")
+
+	mc = logfilter.NewMonitoredClusterService(*dnsAddress, *environmentTag)
 
 	dec := json.NewDecoder(os.Stdin)
 	enc := json.NewEncoder(os.Stdout)
@@ -68,24 +74,31 @@ func main() {
 			}
 			panic(err)
 		}
-		unit := m["_SYSTEMD_UNIT"]
-		if unitString, ok := unit.(string); ok {
-			if blacklistedUnits[unitString] {
-				continue
-			}
+		keep := processMessage(m)
+		if keep {
+			enc.Encode(m)
 		}
-
-		message := fixBytesToString(m["MESSAGE"]).(string)
-
-		if containsBlacklistedString(message) {
-			continue
-		}
-
-		munge(m, message)
-		removeBlacklistedProperties(m)
-		renameProperties(m)
-		enc.Encode(m)
 	}
+}
+
+func processMessage(m map[string]interface{}) bool {
+	unit := m["_SYSTEMD_UNIT"]
+	if unitString, ok := unit.(string); ok {
+		if blacklistedUnits[unitString] {
+			return false
+		}
+	}
+
+	message := fixBytesToString(m["MESSAGE"]).(string)
+
+	if containsBlacklistedString(message) {
+		return false
+	}
+
+	munge(m, message)
+	removeBlacklistedProperties(m)
+	renameProperties(m)
+	return true
 }
 
 func containsBlacklistedString(message string) bool {
@@ -129,6 +142,10 @@ func munge(m map[string]interface{}, message string) {
 	}
 	for k, v := range entMap {
 		m[k] = v
+	}
+
+	if m["monitoring_event"] == "true" {
+		m["active_cluster"], _ = mc.IsActive()
 	}
 }
 
