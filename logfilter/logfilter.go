@@ -181,7 +181,7 @@ func extractServiceName(containerTag interface{}) string {
 func extractPodName(containerTag interface{}) string {
 	containerNameSplitByUnderscores := splitByUnderscores(containerTag)
 
-	if len(containerNameSplitByUnderscores) >= 2 {
+	if len(containerNameSplitByUnderscores) > 2 {
 		return containerNameSplitByUnderscores[2]
 	}
 

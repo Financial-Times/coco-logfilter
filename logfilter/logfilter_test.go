@@ -132,17 +132,52 @@ func TestNoTransactionId(t *testing.T) {
 func TestContainsBlacklistedStringWithBlacklistedString(t *testing.T) {
 	message := "foo baz baz " + blacklistedStrings[0] + " foo "
 
-	if !containsBlacklistedString(message) {
+	if !containsBlacklistedString(message, blacklistedStrings) {
 		t.Error("Expected to detect blacklisted string in test")
 	}
-
 }
 
 func TestContainsBlacklistedStringWithoutBlacklistedString(t *testing.T) {
 	message := "foo baz baz transazzzction_id=transid_a-b banana"
 
-	if containsBlacklistedString(message) {
+	if containsBlacklistedString(message, blacklistedStrings) {
 		t.Error("Detected black listed string when there was none")
 	}
+}
 
+func TestExtractPodNameWithEmptyContainerTag(t *testing.T) {
+	if podName := extractPodName(""); podName != "" {
+		t.Error("Expected empty string as pod name when empty container tag is provided")
+	}
+}
+
+func TestExtractPodNameWithNonStringContainerTag(t *testing.T) {
+	nonStringContainerTag := 1
+	if podName := extractPodName(nonStringContainerTag); podName != "" {
+		t.Error("Expected empty string as pod name when non string container tag is provided")
+	}
+}
+
+func TestExtractPodNameWithContainerTagWithoutUnderscores(t *testing.T) {
+	if podName := extractPodName("test"); podName != "" {
+		t.Error("Expected empty string as pod name when container tag without underscores is provided")
+	}
+}
+
+func TestExtractPodNameWithContainerTagWithOneUnderscore(t *testing.T) {
+	if podName := extractPodName("test_a"); podName != "" {
+		t.Error("Expected empty string as pod name when container tag with one underscore is provided")
+	}
+}
+
+func TestExtractPodNameWithValidContainerTagContainingTwoUnderscores(t *testing.T) {
+	if podName := extractPodName("test_a_b"); podName != "b" {
+		t.Error("Expected non empty string as pod name when container tag with two underscores is provided")
+	}
+}
+
+func TestExtractPodNameWithValidContainerTagContainingMoreThanTwoUnderscores(t *testing.T) {
+	if podName := extractPodName("test_a_b_c"); podName != "b" {
+		t.Error("Expected third substring from container tag as pod name when container tag with more two underscores is provided")
+	}
 }
