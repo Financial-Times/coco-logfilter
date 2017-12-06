@@ -11,9 +11,15 @@ docker build -t coco/coco-logfilter .
 ```
 
 ##Installation
+Download the project:
 ```
 go get github.com/Financial-Times/coco-logfilter/logfilter
 
+```
+Use govendor for dependencies:
+```
+go get github.com/kardianos/govendor
+govendor sync
 ```
 
 ##Example use
