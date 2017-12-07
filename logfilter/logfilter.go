@@ -37,13 +37,15 @@ var (
 		//"docker.service":             true,
 		"diamond.service":            true,
 		"logstash-forwarder.service": true,
-		"kubelet.service": true,
 		"flanneld.service": true,
 
 	}
 
 	blacklistedStrings = []string{
 		"transaction_id=SYNTHETIC-REQ",
+		// this is extensively logged by the kubelet.service when mounting the volume
+		// holding the default token for the service account.
+		"MountVolume.SetUp succeeded for volume",
 	}
 
 	blacklistedSyslogIds = map[string]bool{
