@@ -34,15 +34,17 @@ var (
 
 	blacklistedUnits = map[string]bool{
 		"splunk-forwarder.service":   true,
-		//"docker.service":             true,
+		// "docker.service":             true,
 		"diamond.service":            true,
 		"logstash-forwarder.service": true,
-		"flanneld.service": true,
-
+		"kubelet.service":            true,
+		"flanneld.service":           true,
 	}
 
 	blacklistedStrings = []string{
 		"transaction_id=SYNTHETIC-REQ",
+		"__health",
+		"__gtg",
 		// this is extensively logged by the kubelet.service when mounting the volume
 		// holding the default token for the service account.
 		"MountVolume.SetUp succeeded for volume",
@@ -66,9 +68,15 @@ var (
 )
 
 var environmentTag *string = new(string)
+var dnsAddress *string = new(string)
+
+var mc logfilter.ClusterService
 
 func main() {
 	*environmentTag = os.Getenv("ENV")
+	*dnsAddress = os.Getenv("DNS_ADDRESS")
+
+	mc = logfilter.NewMonitoredClusterService(*dnsAddress, *environmentTag)
 
 	dec := json.NewDecoder(os.Stdin)
 	enc := json.NewEncoder(os.Stdout)
@@ -81,38 +89,45 @@ func main() {
 			}
 			panic(err)
 		}
-		unit := m["_SYSTEMD_UNIT"]
-		if unitString, ok := unit.(string); ok {
-			if blacklistedUnits[unitString] {
-				continue
-			}
+		keep := processMessage(m)
+		if keep {
+			enc.Encode(m)
 		}
-
-		syslogId := m["SYSLOG_IDENTIFIER"]
-		if syslogIdString, ok := syslogId.(string); ok {
-			if blacklistedSyslogIds[syslogIdString] {
-				continue
-			}
-		}
-
-		containerTag := m["CONTAINER_TAG"]
-		if containerTagString, ok := containerTag.(string); ok {
-			if (containsBlacklistedString(containerTagString, blacklistedContainerTags)) {
-				continue
-			}
-		}
-
-		message := fixBytesToString(m["MESSAGE"]).(string)
-
-		if containsBlacklistedString(message, blacklistedStrings) {
-			continue
-		}
-
-		munge(m, message)
-		removeBlacklistedProperties(m)
-		renameProperties(m)
-		enc.Encode(m)
 	}
+}
+
+func processMessage(m map[string]interface{}) bool {
+	unit := m["_SYSTEMD_UNIT"]
+	if unitString, ok := unit.(string); ok {
+		if blacklistedUnits[unitString] {
+			return false
+		}
+	}
+
+	syslogId := m["SYSLOG_IDENTIFIER"]
+	if syslogIdString, ok := syslogId.(string); ok {
+		if blacklistedSyslogIds[syslogIdString] {
+			return false
+		}
+	}
+
+	containerTag := m["CONTAINER_TAG"]
+	if containerTagString, ok := containerTag.(string); ok {
+		if (containsBlacklistedString(containerTagString, blacklistedContainerTags)) {
+			return false
+		}
+	}
+
+	message := fixBytesToString(m["MESSAGE"]).(string)
+
+	if containsBlacklistedString(message, blacklistedStrings) {
+		return false
+	}
+
+	munge(m, message)
+	removeBlacklistedProperties(m)
+	renameProperties(m)
+	return true
 }
 
 func containsBlacklistedString(message string, blacklistedStrings []string) bool {
@@ -167,6 +182,10 @@ func munge(m map[string]interface{}, message string) {
 	for k, v := range entMap {
 		m[k] = v
 	}
+
+	if m["monitoring_event"] == "true" {
+		m["active_cluster"], _ = mc.IsActive()
+	}
 }
 
 func extractServiceName(containerTag interface{}) string {
@@ -199,7 +218,7 @@ func splitByUnderscores(i interface{}) []string {
 	return []string{}
 }
 
-var trans_regex = regexp.MustCompile(`\btransaction_id=([\w-]*)`)
+var trans_regex = regexp.MustCompile(`\btransaction_id=([A-Za-z0-9\-_:]+)`)
 
 func extractTransactionId(message string) string {
 	matches := trans_regex.FindAllStringSubmatch(message, -1)

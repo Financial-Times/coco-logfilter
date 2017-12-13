@@ -192,9 +192,9 @@ func TestExtractOldPamEntity(t *testing.T) {
 			"true",
 			"6",
 			"content"},
-		{`[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_28pbiavoqs publishDate=1450692093737000000 publishOk=true duration=6 endpoint=notifications-push`,
+		{`[splunkMetrics] 2015/12/21 10:01:37.336610 UUID=08d30fb4-a7b3-11e5-955c-1e1d6de94879 transaction_id=tid_pam_notifications_pull_2017-01-18T12:21:49Z publishDate=1450692093737000000 publishOk=true duration=6 endpoint=notifications-push`,
 			"08d30fb4-a7b3-11e5-955c-1e1d6de94879",
-			"tid_28pbiavoqs",
+			"tid_pam_notifications_pull_2017-01-18T12:21:49Z",
 			"1450692093737000000",
 			"true",
 			"6",
@@ -226,7 +226,6 @@ func TestExtractOldPamEntity(t *testing.T) {
 		}
 	}
 }
-
 
 func TestExtractVarnishEntity(t *testing.T) {
 	var tests = []struct {
@@ -260,6 +259,40 @@ func TestExtractVarnishEntity(t *testing.T) {
 		}
 		if varnishEntity.Resptime != test.Resptime {
 			t.Errorf("message: %s\nexpected respTime %s, actual respTime %s", test.message, test.Resptime, varnishEntity.Resptime)
+		}
+	}
+}
+
+func TestExtractJsonEntity(t *testing.T) {
+	const (
+		Example1JsonFieldName  = "event"
+		Example1JsonFieldValue = "consume_queue"
+		Example2JsonFieldName  = "msg"
+		Example2JsonFieldValue = "Ignoring message with different Origin-System-Id: http://cmdb.ft.com/systems/methode-web-pub"
+	)
+
+	var tests = []struct {
+		message        string
+		jsonFieldName  string
+		jsonFieldValue string
+	}{
+		{`{"` + Example1JsonFieldName + `":"` + Example1JsonFieldValue + `","level":"info","` + Example2JsonFieldName + `":"` + Example2JsonFieldValue + `","queue_topic":"NativeCmsPublicationEvents","service_name":"next-video-annotations-mapper","time":"2017-05-31T12:06:07Z"}`,
+			Example1JsonFieldName,
+			Example1JsonFieldValue,
+		},
+		{`{"` + Example1JsonFieldName + `":"` + Example1JsonFieldValue + `","level":"info","` + Example2JsonFieldName + `":"` + Example2JsonFieldValue + `","queue_topic":"NativeCmsPublicationEvents","service_name":"next-video-annotations-mapper","time":"2017-05-31T12:06:07Z"}`,
+			Example2JsonFieldName,
+			Example2JsonFieldValue,
+		},
+	}
+
+	for _, test := range tests {
+		jsonEntity, ok := extractJsonEntity(test.message)
+		if !ok {
+			t.Fatalf("failed to extract values '%s'", test.message)
+		}
+		if jsonEntity[test.jsonFieldName] != test.jsonFieldValue {
+			t.Errorf("message: %s\nexpected jsonFieldValue %s, actual jsonFieldValue %s", test.message, test.jsonFieldValue, jsonEntity[test.jsonFieldName])
 		}
 	}
 }
