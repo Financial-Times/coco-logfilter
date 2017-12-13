@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/github.com/Financial-Times/coco-logfilter
+    working_directory: /go/src/github.com/Financial-Times/{{ cookiecutter.repo_name }}
     docker:
       - image: golang:1.8.3
         environment:
@@ -39,7 +39,7 @@ jobs:
       - store_test_results:
           path: /tmp/test-results
   dockerfile:
-    working_directory: /coco-logfilter
+    working_directory: /{{ cookiecutter.repo_name }}
     docker:
       - image: docker:1.12.6-git
     steps:
