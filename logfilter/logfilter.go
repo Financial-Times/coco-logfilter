@@ -45,6 +45,7 @@ var (
 		"transaction_id=SYNTHETIC-REQ",
 		"__health",
 		"__gtg",
+
 		// this is extensively logged by the kubelet.service when mounting the volume
 		// holding the default token for the service account.
 		"MountVolume.SetUp succeeded for volume",
