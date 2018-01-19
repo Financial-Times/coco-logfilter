@@ -33,7 +33,7 @@ var (
 	}
 
 	blacklistedUnits = map[string]bool{
-		"splunk-forwarder.service":   true,
+		"log-collector.service": true,
 		// "docker.service":             true,
 		"diamond.service":            true,
 		"logstash-forwarder.service": true,
@@ -59,6 +59,7 @@ var (
 		"gcr.io/google_containers/heapster",
 		"gcr.io/google_containers/kubedns-amd64",
 		"gcr.io/google_containers/addon-resizer",
+		"coco/resilient-splunk-forwarder",
 	}
 
 	propertyMapping = map[string]string{
@@ -114,7 +115,7 @@ func processMessage(m map[string]interface{}) bool {
 
 	containerTag := m["CONTAINER_TAG"]
 	if containerTagString, ok := containerTag.(string); ok {
-		if (containsBlacklistedString(containerTagString, blacklistedContainerTags)) {
+		if containsBlacklistedString(containerTagString, blacklistedContainerTags) {
 			return false
 		}
 	}

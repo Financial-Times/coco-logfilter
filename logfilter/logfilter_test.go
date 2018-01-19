@@ -154,7 +154,7 @@ func TestTransactionId(t *testing.T) {
 func TestContainsBlacklistedStringWithBlacklistedString(t *testing.T) {
 	message := "foo baz baz " + blacklistedStrings[0] + " foo "
 
-	if !containsBlacklistedString(message,blacklistedStrings) {
+	if !containsBlacklistedString(message, blacklistedStrings) {
 		t.Error("Expected to detect blacklisted string in test")
 	}
 
@@ -163,7 +163,7 @@ func TestContainsBlacklistedStringWithBlacklistedString(t *testing.T) {
 func TestContainsBlacklistedStringWithoutBlacklistedString(t *testing.T) {
 	message := "foo baz baz transazzzction_id=transid_a-b banana"
 
-	if containsBlacklistedString(message,blacklistedStrings) {
+	if containsBlacklistedString(message, blacklistedStrings) {
 		t.Error("Detected black listed string when there was none")
 	}
 
