@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"encoding/json"
+	"strings"
+
 	"github.com/Financial-Times/coco-logfilter"
 	"github.com/stretchr/testify/assert"
-	"strings"
 )
 
 func TestFixBytesToString(t *testing.T) {
@@ -154,7 +155,7 @@ func TestTransactionId(t *testing.T) {
 func TestContainsBlacklistedStringWithBlacklistedString(t *testing.T) {
 	message := "foo baz baz " + blacklistedStrings[0] + " foo "
 
-	if !containsBlacklistedString(message,blacklistedStrings) {
+	if !containsBlacklistedString(message, blacklistedStrings) {
 		t.Error("Expected to detect blacklisted string in test")
 	}
 
@@ -163,10 +164,29 @@ func TestContainsBlacklistedStringWithBlacklistedString(t *testing.T) {
 func TestContainsBlacklistedStringWithoutBlacklistedString(t *testing.T) {
 	message := "foo baz baz transazzzction_id=transid_a-b banana"
 
-	if containsBlacklistedString(message,blacklistedStrings) {
+	if containsBlacklistedString(message, blacklistedStrings) {
 		t.Error("Detected black listed string when there was none")
 	}
 
+}
+
+func TestBlacklistedServices(t *testing.T) {
+	testCases := []struct {
+		jsonString string
+		expected   bool
+	}{
+		{
+			jsonString: `{"CONTAINER_ID":"03d1f4078733","CONTAINER_ID_FULL":"03d1f4078733f75f4505b07d1f8a3e8287ed497d9d54e0e785440cb969378ca3","CONTAINER_NAME":"k8s_cluster-autoscaler_cluster-autoscaler-79d574774-2rxrj_kube-system_a093cbca-fb5a-11e7-a6b6-06263dd4a414_6","CONTAINER_TAG":"gcr.io/google_containers/cluster-autoscaler@sha256:6ceb111a36020dc2124c0d7e3746088c20c7e3806a1075dd9e5fe1c42f744fff","HOSTNAME":"ip-10-172-40-164.eu-west-1.compute.internal","MACHINE_ID":"8d1225f40ee64cc7bcce2f549a41657c","MESSAGE":"I0119 15:38:05.932385 1 leaderelection.go:199] successfully renewed lease kube-system/cluster-autoscaler","POD_NAME":"cluster-autoscaler-79d574774-2rxrj","SERVICE_NAME":"cluster-autoscaler","SYSTEMD_UNIT":"docker.service","_SOURCE_REALTIME_TIMESTAMP":"1516376285932645","_SYSTEMD_INVOCATION_ID":"e3b2703c430f45e8a7075dbcf6b3a588","environment":"upp-prod-publish-eu","platform":"up-coco"}`,
+			expected:   false,
+		},
+	}
+
+	for _, c := range testCases {
+		m := make(map[string]interface{})
+		json.Unmarshal([]byte(c.jsonString), &m)
+		ok := processMessage(m)
+		assert.True(t, c.expected == ok)
+	}
 }
 
 func TestClusterStatus(t *testing.T) {
