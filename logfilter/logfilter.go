@@ -40,6 +40,13 @@ var (
 		"kubelet.service":            true,
 		"flanneld.service":           true,
 	}
+	
+	blacklistedServices = map[string]bool{
+		"main":					true,
+		"cluster-autoscaler":			true,
+		"kube-resources-autosavepusher":	true,
+		"kube-resources-autosave-dumper":	true,
+	}
 
 	blacklistedStrings = []string{
 		"transaction_id=SYNTHETIC-REQ",
@@ -101,6 +108,13 @@ func processMessage(m map[string]interface{}) bool {
 	unit := m["_SYSTEMD_UNIT"]
 	if unitString, ok := unit.(string); ok {
 		if blacklistedUnits[unitString] {
+			return false
+		}
+	}
+	
+	serviceName := m["SERVICE_NAME"]
+	if serviceString, ok := serviceName.(string); ok {
+		if blacklistedServices[serviceString] {
 			return false
 		}
 	}
