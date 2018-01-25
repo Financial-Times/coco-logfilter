@@ -56,6 +56,7 @@ var (
 	}
 
 	blacklistedStrings = []string{
+		"transaction_id=SYNTHETIC-REQ",
 		`"transaction_id":"SYNTHETIC-REQ`,
 		"__health",
 		"__gtg",
