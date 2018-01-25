@@ -30,10 +30,17 @@ var (
 		"_SELINUX_CONTEXT",
 		"__REALTIME_TIMESTAMP",
 		"_PID",
+		"CONTAINER_ID",
+		"CONTAINER_ID_FULL",
+		"CONTAINER_NAME",
+		"CONTAINER_TAG",
+		"MACHINE_ID",
+		"_SOURCE_REALTIME_TIMESTAMP",
+		"_SYSTEMD_INVOCATION_ID",
 	}
 
 	blacklistedUnits = map[string]bool{
-		"splunk-forwarder.service":   true,
+		"splunk-forwarder.service": true,
 		// "docker.service":             true,
 		"diamond.service":            true,
 		"logstash-forwarder.service": true,
@@ -41,8 +48,16 @@ var (
 		"flanneld.service":           true,
 	}
 
+	blacklistedServices = map[string]bool{
+		"main":                           true,
+		"cluster-autoscaler":             true,
+		"kube-resources-autosave-pusher": true,
+		"kube-resources-autosave-dumper": true,
+	}
+
 	blacklistedStrings = []string{
 		"transaction_id=SYNTHETIC-REQ",
+		`"transaction_id":"SYNTHETIC-REQ`,
 		"__health",
 		"__gtg",
 
@@ -105,6 +120,13 @@ func processMessage(m map[string]interface{}) bool {
 		}
 	}
 
+	serviceName := m["SERVICE_NAME"]
+	if serviceString, ok := serviceName.(string); ok {
+		if blacklistedServices[serviceString] {
+			return false
+		}
+	}
+
 	syslogId := m["SYSLOG_IDENTIFIER"]
 	if syslogIdString, ok := syslogId.(string); ok {
 		if blacklistedSyslogIds[syslogIdString] {
@@ -114,7 +136,7 @@ func processMessage(m map[string]interface{}) bool {
 
 	containerTag := m["CONTAINER_TAG"]
 	if containerTagString, ok := containerTag.(string); ok {
-		if (containsBlacklistedString(containerTagString, blacklistedContainerTags)) {
+		if containsBlacklistedString(containerTagString, blacklistedContainerTags) {
 			return false
 		}
 	}
@@ -142,7 +164,7 @@ func containsBlacklistedString(message string, blacklistedStrings []string) bool
 
 func munge(m map[string]interface{}, message string) {
 
-	m["platform"] = "up-coco"
+	m["platform"] = "up-k8s"
 	if *environmentTag != "" {
 		m["environment"] = *environmentTag
 	}
@@ -165,7 +187,7 @@ func munge(m map[string]interface{}, message string) {
 		m["transaction_id"] = trans_id
 	}
 
-	ent, ok := logfilter.Extract(message)
+	ent, ok, format := logfilter.Extract(message)
 	if !ok {
 		return
 	}
@@ -182,6 +204,11 @@ func munge(m map[string]interface{}, message string) {
 	}
 	for k, v := range entMap {
 		m[k] = v
+	}
+
+	//avoid field duplication
+	if format == "json" {
+		delete(m, "MESSAGE")
 	}
 
 	if m["monitoring_event"] == "true" {
