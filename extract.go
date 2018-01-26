@@ -30,28 +30,29 @@ var (
 	varnishRegex = regexp.MustCompile(`^[\d\.\,\s]+\s+(\S+)\s+[\w:\/]+\s+(\S+)\s+([0-9]{3})\s+([0-9\.]+)\s+\"([\S\s]+)\"\stransaction_id=([\S]+)`)
 )
 
-func Extract(message string) (v interface{}, extracted bool) {
+func Extract(message string) (v interface{}, extracted bool, format string) {
 	v, extracted = extractAccEntry(message)
 	if extracted {
-		return v, extracted
+		return v, extracted, "access"
 	}
 	v, extracted = extractPamEntity(message)
 	if extracted {
-		return v, extracted
+		return v, extracted, "pam"
 	}
 	v, extracted = extractOldPamEntity(message)
 	if extracted {
-		return v, extracted
+		return v, extracted, "oldpam"
 	}
 	v, extracted = extractVarnishEntity(message)
 	if extracted {
-		return v, extracted
+		return v, extracted, "varnish"
 	}
 	v, extracted = extractJsonEntity(message)
 	if extracted {
-		return v, extracted
+		return v, extracted, "json"
 	}
-	return extractAppEntry(message)
+	v, extracted = extractAppEntry(message)
+	return v, extracted, "app"
 }
 
 func extractJsonEntity(message string) (map[string]interface{}, bool) {
