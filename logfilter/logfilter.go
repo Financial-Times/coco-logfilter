@@ -164,15 +164,18 @@ func containsBlacklistedString(message string, blacklistedStrings []string) bool
 	return false
 }
 
-var apiKeyQueryParamRegExp = regexp.MustCompile("apiKey=[a-zA-Z0-9]+")
+var apiKeyQueryParamRegExp = regexp.MustCompile("api_?[kK]ey=[^\\s&]+")
 
-const charactersToKeepVisible = 17
+const charactersToKeepVisible = 10
 
 func hideAPIKeysInURLQueryParams(msg string) string {
 	queryParams := apiKeyQueryParamRegExp.FindAllString(msg, -1)
 	for _, queryParam := range queryParams {
-		obscuredQueryParam := queryParam[:charactersToKeepVisible] + strings.Repeat("*", len(queryParam)-charactersToKeepVisible)
-		msg = strings.Replace(msg, queryParam, obscuredQueryParam, 1)
+		splittedParam := strings.Split(queryParam, "=")
+		paramName := splittedParam[0]
+		key := splittedParam[1]
+		obscuredKey := key[:charactersToKeepVisible] + strings.Repeat("*", 8)
+		msg = strings.Replace(msg, queryParam, paramName+"="+obscuredKey, 1)
 	}
 	return msg
 }
