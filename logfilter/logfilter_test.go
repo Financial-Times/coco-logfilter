@@ -188,6 +188,7 @@ func TestBlacklistedServices(t *testing.T) {
 	}
 }
 
+//TODO This needs to be properly fixed for kubernetes clusters
 func TestClusterStatus(t *testing.T) {
 	trueVar := true
 	falseVar := false
@@ -201,7 +202,7 @@ func TestClusterStatus(t *testing.T) {
 		{
 			jsonString: `{"@time":"2017-09-12T14:19:28.199162596Z","HOSTNAME":"ip-172-24-159-194.eu-west-1.compute.internal","MACHINE_ID":"1234","MESSAGE":"{\"@time\":\"2017-09-12T14:19:28.199162596Z\",\"content_type\":\"Suggestions\",\"event\":\"SaveNeo4j\",\"level\":\"info\",\"monitoring_event\":\"true\",\"msg\":\"%s successfully written in Neo4jSuggestions\",\"service_name\":\"suggestions-rw-neo4j\",\"transaction_id\":\"tid_u7pkkludzd\",\"uuid\":\"0ec3c76b-9be4-4d76-b1f9-5414460a8bc1\"}","SYSTEMD_UNIT":"suggestions-rw-neo4j@1.service","_SYSTEMD_INVOCATION_ID":"1234","content_type":"Suggestions","environment":"xp","event":"SaveNeo4j","level":"info","monitoring_event":"true","msg":"%s successfully written in Neo4jSuggestions","platform":"up-coco","service_name":"suggestions-rw-neo4j","transaction_id":"tid_test","uuid":"a3f63cda-97af-11e7-b83c-9588e51488a0"}`,
 			dnsAddress: "google.com",
-			tag:        "ns",
+			tag:        "go",
 			expected:   &trueVar,
 		},
 		{
@@ -213,7 +214,7 @@ func TestClusterStatus(t *testing.T) {
 		{
 			jsonString: `{"@time":"2017-09-12T14:19:28.199162596Z","HOSTNAME":"ip-172-24-159-194.eu-west-1.compute.internal","MACHINE_ID":"1234","MESSAGE":"{\"@time\":\"2017-09-12T14:19:28.199162596Z\",\"content_type\":\"Suggestions\",\"event\":\"SaveNeo4j\",\"level\":\"info\",\"msg\":\"%s successfully written in Neo4jSuggestions\",\"service_name\":\"suggestions-rw-neo4j\",\"transaction_id\":\"tid_u7pkkludzd\",\"uuid\":\"a0ec3c76b-9be4-4d76-b1f9-5414460a8bc1\"}","SYSTEMD_UNIT":"suggestions-rw-neo4j@1.service","_SYSTEMD_INVOCATION_ID":"1234","content_type":"Suggestions","environment":"xp","event":"SaveNeo4j","level":"info","msg":"%s successfully written in Neo4jSuggestions","platform":"up-coco","service_name":"suggestions-rw-neo4j","transaction_id":"tid_test","uuid":"a3f63cda-97af-11e7-b83c-9588e51488a0"}`,
 			dnsAddress: "google.com",
-			tag:        "ns",
+			tag:        "go",
 			expected:   nil,
 		},
 	}
