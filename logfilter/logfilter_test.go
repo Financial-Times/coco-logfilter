@@ -1,12 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
-	"testing"
-
-	"encoding/json"
 	"strings"
+	"testing"
 
 	"github.com/Financial-Times/coco-logfilter"
 	"github.com/stretchr/testify/assert"
