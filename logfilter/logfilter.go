@@ -147,6 +147,8 @@ func processMessage(m map[string]interface{}) bool {
 		return false
 	}
 
+	message = hideAPIKeysInURLQueryParams(message)
+
 	munge(m, message)
 	removeBlacklistedProperties(m)
 	renameProperties(m)
@@ -160,6 +162,20 @@ func containsBlacklistedString(message string, blacklistedStrings []string) bool
 		}
 	}
 	return false
+}
+
+var apiKeyQueryParamRegExp = regexp.MustCompile("(?i)api_?key(?-i)=[^\\s&]+")
+
+func hideAPIKeysInURLQueryParams(msg string) string {
+	queryParams := apiKeyQueryParamRegExp.FindAllString(msg, -1)
+	for _, queryParam := range queryParams {
+		splitParam := strings.Split(queryParam, "=")
+		paramName := splitParam[0]
+		key := splitParam[1]
+		obscuredKey := key[:len(key)/2] + strings.Repeat("*", 8)
+		msg = strings.Replace(msg, queryParam, paramName+"="+obscuredKey, 1)
+	}
+	return msg
 }
 
 func munge(m map[string]interface{}, message string) {

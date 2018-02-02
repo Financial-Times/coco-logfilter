@@ -1,14 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
-	"encoding/json"
 	"github.com/Financial-Times/coco-logfilter"
 	"github.com/stretchr/testify/assert"
-	"strings"
 )
 
 func TestFixBytesToString(t *testing.T) {
@@ -154,7 +154,7 @@ func TestTransactionId(t *testing.T) {
 func TestContainsBlacklistedStringWithBlacklistedString(t *testing.T) {
 	message := "foo baz baz " + blacklistedStrings[0] + " foo "
 
-	if !containsBlacklistedString(message,blacklistedStrings) {
+	if !containsBlacklistedString(message, blacklistedStrings) {
 		t.Error("Expected to detect blacklisted string in test")
 	}
 
@@ -163,7 +163,7 @@ func TestContainsBlacklistedStringWithBlacklistedString(t *testing.T) {
 func TestContainsBlacklistedStringWithoutBlacklistedString(t *testing.T) {
 	message := "foo baz baz transazzzction_id=transid_a-b banana"
 
-	if containsBlacklistedString(message,blacklistedStrings) {
+	if containsBlacklistedString(message, blacklistedStrings) {
 		t.Error("Detected black listed string when there was none")
 	}
 
@@ -188,6 +188,7 @@ func TestBlacklistedServices(t *testing.T) {
 	}
 }
 
+//TODO This needs to be properly fixed for kubernetes clusters
 func TestClusterStatus(t *testing.T) {
 	trueVar := true
 	falseVar := false
@@ -201,7 +202,7 @@ func TestClusterStatus(t *testing.T) {
 		{
 			jsonString: `{"@time":"2017-09-12T14:19:28.199162596Z","HOSTNAME":"ip-172-24-159-194.eu-west-1.compute.internal","MACHINE_ID":"1234","MESSAGE":"{\"@time\":\"2017-09-12T14:19:28.199162596Z\",\"content_type\":\"Suggestions\",\"event\":\"SaveNeo4j\",\"level\":\"info\",\"monitoring_event\":\"true\",\"msg\":\"%s successfully written in Neo4jSuggestions\",\"service_name\":\"suggestions-rw-neo4j\",\"transaction_id\":\"tid_u7pkkludzd\",\"uuid\":\"0ec3c76b-9be4-4d76-b1f9-5414460a8bc1\"}","SYSTEMD_UNIT":"suggestions-rw-neo4j@1.service","_SYSTEMD_INVOCATION_ID":"1234","content_type":"Suggestions","environment":"xp","event":"SaveNeo4j","level":"info","monitoring_event":"true","msg":"%s successfully written in Neo4jSuggestions","platform":"up-coco","service_name":"suggestions-rw-neo4j","transaction_id":"tid_test","uuid":"a3f63cda-97af-11e7-b83c-9588e51488a0"}`,
 			dnsAddress: "google.com",
-			tag:        "ns",
+			tag:        "go",
 			expected:   &trueVar,
 		},
 		{
@@ -213,7 +214,7 @@ func TestClusterStatus(t *testing.T) {
 		{
 			jsonString: `{"@time":"2017-09-12T14:19:28.199162596Z","HOSTNAME":"ip-172-24-159-194.eu-west-1.compute.internal","MACHINE_ID":"1234","MESSAGE":"{\"@time\":\"2017-09-12T14:19:28.199162596Z\",\"content_type\":\"Suggestions\",\"event\":\"SaveNeo4j\",\"level\":\"info\",\"msg\":\"%s successfully written in Neo4jSuggestions\",\"service_name\":\"suggestions-rw-neo4j\",\"transaction_id\":\"tid_u7pkkludzd\",\"uuid\":\"a0ec3c76b-9be4-4d76-b1f9-5414460a8bc1\"}","SYSTEMD_UNIT":"suggestions-rw-neo4j@1.service","_SYSTEMD_INVOCATION_ID":"1234","content_type":"Suggestions","environment":"xp","event":"SaveNeo4j","level":"info","msg":"%s successfully written in Neo4jSuggestions","platform":"up-coco","service_name":"suggestions-rw-neo4j","transaction_id":"tid_test","uuid":"a3f63cda-97af-11e7-b83c-9588e51488a0"}`,
 			dnsAddress: "google.com",
-			tag:        "ns",
+			tag:        "go",
 			expected:   nil,
 		},
 	}
@@ -266,4 +267,25 @@ func TestExtractPodNameWithValidContainerTagContainingMoreThanTwoUnderscores(t *
 	if podName := extractPodName("test_a_b_c"); podName != "b" {
 		t.Error("Expected third substring from container tag as pod name when container tag with more two underscores is provided")
 	}
+}
+
+func TestHideSingleAPIKeysInURLQueryParam(t *testing.T) {
+	msgWithAPIKey := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3gyywm3wk2sv44wb&type=ALL 200 -2147483648 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36" transaction_id=- miss`
+	expectedMsg := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3gyy********&type=ALL 200 -2147483648 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36" transaction_id=- miss`
+	actualMsg := hideAPIKeysInURLQueryParams(msgWithAPIKey)
+	assert.Equal(t, expectedMsg, actualMsg)
+}
+
+func TestHideMultipleAPIKeysInURLQueryParams(t *testing.T) {
+	msgWithAPIKey := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3gyywm3wk2sv44wb&type=ALL /content/notifications-push?api_key=wm3wk2sv44wbvhs2aazf3gyy`
+	expectedMsg := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3gyy********&type=ALL /content/notifications-push?api_key=wm3wk2sv44wb********`
+	actualMsg := hideAPIKeysInURLQueryParams(msgWithAPIKey)
+	assert.Equal(t, expectedMsg, actualMsg)
+}
+
+func TestBypassWithoutAPIKeysInURLQueryParams(t *testing.T) {
+	msgWithoutAPIKey := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?type=ALL 200 -2147483648 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36" transaction_id=- miss`
+	expectedMsg := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?type=ALL 200 -2147483648 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36" transaction_id=- miss`
+	actualMsg := hideAPIKeysInURLQueryParams(msgWithoutAPIKey)
+	assert.Equal(t, expectedMsg, actualMsg)
 }
