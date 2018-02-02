@@ -271,14 +271,14 @@ func TestExtractPodNameWithValidContainerTagContainingMoreThanTwoUnderscores(t *
 
 func TestHideSingleAPIKeysInURLQueryParam(t *testing.T) {
 	msgWithAPIKey := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3gyywm3wk2sv44wb&type=ALL 200 -2147483648 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36" transaction_id=- miss`
-	expectedMsg := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3g********&type=ALL 200 -2147483648 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36" transaction_id=- miss`
+	expectedMsg := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3gyy********&type=ALL 200 -2147483648 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36" transaction_id=- miss`
 	actualMsg := hideAPIKeysInURLQueryParams(msgWithAPIKey)
 	assert.Equal(t, expectedMsg, actualMsg)
 }
 
 func TestHideMultipleAPIKeysInURLQueryParams(t *testing.T) {
 	msgWithAPIKey := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3gyywm3wk2sv44wb&type=ALL /content/notifications-push?api_key=wm3wk2sv44wbvhs2aazf3gyy`
-	expectedMsg := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3g********&type=ALL /content/notifications-push?api_key=wm3wk2sv44********`
+	expectedMsg := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?apiKey=vhs2aazf3gyy********&type=ALL /content/notifications-push?api_key=wm3wk2sv44wb********`
 	actualMsg := hideAPIKeysInURLQueryParams(msgWithAPIKey)
 	assert.Equal(t, expectedMsg, actualMsg)
 }
