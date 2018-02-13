@@ -40,8 +40,8 @@ var (
 	}
 
 	blacklistedUnits = map[string]bool{
-		"splunk-forwarder.service": true,
-		// "docker.service":             true,
+		"log-collector.service":      true,
+		// "docker.service":          true,
 		"diamond.service":            true,
 		"logstash-forwarder.service": true,
 		"kubelet.service":            true,
@@ -74,6 +74,7 @@ var (
 		"gcr.io/google_containers/heapster",
 		"gcr.io/google_containers/kubedns-amd64",
 		"gcr.io/google_containers/addon-resizer",
+		"coco/resilient-splunk-forwarder",
 	}
 
 	propertyMapping = map[string]string{
