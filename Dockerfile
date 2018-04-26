@@ -11,7 +11,6 @@ RUN apk --no-cache --virtual .build-dependencies add git \
   && ln -s /${PROJECT}-sources $GOPATH/src/${REPO_PATH} \
   && cd $GOPATH/src/${REPO_PATH} \
   && go get ./... \
-  && cd logfilter \
   && go build \
   && ls -lah \
   && mv logfilter /${PROJECT} \
