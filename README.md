@@ -3,25 +3,29 @@
 # coco-logfilter
 Simple pre-aggregation logfilter to operate on the json output of journald.
 
-## Building
-```
-cd logfilter
-CGO_ENABLED=0 go build -a -installsuffix cgo -o coco-logfilter .
-cd ..
-
-docker build -t coco/coco-logfilter .
-```
-
 ## Installation
 Download the project:
-```
-go get github.com/Financial-Times/coco-logfilter/logfilter
 
+`go get github.com/Financial-Times/coco-logfilter/logfilter`
+
+## Building
+
+### Install dep
+
+#### Mac
+`brew install dep` / `brew upgrade dep`
+
+#### Other Platforms
+`curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh`
+
+#### Run dep ensure
+`dep ensure`
+
+### Build
 ```
-Use govendor for dependencies:
-```
-go get github.com/kardianos/govendor
-govendor sync
+CGO_ENABLED=0 go build -a -installsuffix cgo -o coco-logfilter
+
+docker build -t coco/coco-logfilter .
 ```
 
 ## Example use
