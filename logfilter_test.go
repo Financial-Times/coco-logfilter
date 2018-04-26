@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Financial-Times/coco-logfilter"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +32,7 @@ func TestFixNewlines(t *testing.T) {
 	}
 }
 
-var rawJson = map[string]interface{}{
+var rawJSON = map[string]interface{}{
 	"MESSAGE":               "message",
 	"_HOSTNAME":             "hostname",
 	"_MACHINE_ID":           "machine",
@@ -58,14 +57,14 @@ var rawJson = map[string]interface{}{
 	"__REALTIME_TIMESTAMP":  "realtime timestamp",
 }
 
-var blacklistFilteredJson = map[string]interface{}{
+var blacklistFilteredJSON = map[string]interface{}{
 	"MESSAGE":       "message",
 	"_HOSTNAME":     "hostname",
 	"_MACHINE_ID":   "machine",
 	"_SYSTEMD_UNIT": "system",
 }
 
-var blacklistFilteredAndPropertiesRenamedJson = map[string]interface{}{
+var blacklistFilteredAndPropertiesRenamedJSON = map[string]interface{}{
 	"MESSAGE":      "message",
 	"HOSTNAME":     "hostname",
 	"MACHINE_ID":   "machine",
@@ -73,16 +72,16 @@ var blacklistFilteredAndPropertiesRenamedJson = map[string]interface{}{
 }
 
 func TestApplyPropertyBlacklist(t *testing.T) {
-	removeBlacklistedProperties(rawJson)
-	if !reflect.DeepEqual(rawJson, blacklistFilteredJson) {
-		t.Errorf("expected %v but got %v\n", blacklistFilteredJson, rawJson)
+	removeBlacklistedProperties(rawJSON)
+	if !reflect.DeepEqual(rawJSON, blacklistFilteredJSON) {
+		t.Errorf("expected %v but got %v\n", blacklistFilteredJSON, rawJSON)
 	}
 }
 
 func TestShouldRenameProperties(t *testing.T) {
-	renameProperties(blacklistFilteredJson)
-	if !reflect.DeepEqual(blacklistFilteredJson, blacklistFilteredAndPropertiesRenamedJson) {
-		t.Errorf("expected %v but got %v\n", blacklistFilteredAndPropertiesRenamedJson, blacklistFilteredJson)
+	renameProperties(blacklistFilteredJSON)
+	if !reflect.DeepEqual(blacklistFilteredJSON, blacklistFilteredAndPropertiesRenamedJSON) {
+		t.Errorf("expected %v but got %v\n", blacklistFilteredAndPropertiesRenamedJSON, blacklistFilteredJSON)
 	}
 }
 
@@ -220,7 +219,7 @@ func TestClusterStatus(t *testing.T) {
 	}
 
 	for _, c := range testCases {
-		mc = logfilter.NewMonitoredClusterService(c.dnsAddress, c.tag)
+		mc = newMonitoredClusterService(c.dnsAddress, c.tag)
 		m := make(map[string]interface{})
 		json.NewDecoder(strings.NewReader(c.jsonString)).Decode(&m)
 		processMessage(m)

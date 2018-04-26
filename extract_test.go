@@ -1,4 +1,4 @@
-package logfilter
+package main
 
 import (
 	"testing"
@@ -287,7 +287,7 @@ func TestExtractJsonEntity(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		jsonEntity, ok := extractJsonEntity(test.message)
+		jsonEntity, ok := extractJSONEntity(test.message)
 		if !ok {
 			t.Fatalf("failed to extract values '%s'", test.message)
 		}
