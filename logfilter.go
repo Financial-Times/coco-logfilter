@@ -49,6 +49,7 @@ var (
 	blacklistedServices = map[string]bool{
 		"main":                           true,
 		"cluster-autoscaler":             true,
+		"coco-diamond":                   true,
 		"kube-resources-autosave-pusher": true,
 		"kube-resources-autosave-dumper": true,
 	}
