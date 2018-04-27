@@ -38,9 +38,7 @@ var (
 	}
 
 	blacklistedUnits = map[string]bool{
-		"log-collector.service": true,
-		// "docker.service":          true,
-		"diamond.service":            true,
+		"log-collector.service":      true,
 		"logstash-forwarder.service": true,
 		"kubelet.service":            true,
 		"flanneld.service":           true,
@@ -49,7 +47,6 @@ var (
 	blacklistedServices = map[string]bool{
 		"main":                           true,
 		"cluster-autoscaler":             true,
-		"coco-diamond":                   true,
 		"kube-resources-autosave-pusher": true,
 		"kube-resources-autosave-dumper": true,
 	}
@@ -74,6 +71,7 @@ var (
 		"gcr.io/google_containers/kubedns-amd64",
 		"gcr.io/google_containers/addon-resizer",
 		"coco/resilient-splunk-forwarder",
+		"coco-diamond",
 	}
 
 	propertyMapping = map[string]string{
