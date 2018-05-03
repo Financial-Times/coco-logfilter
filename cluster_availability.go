@@ -1,4 +1,4 @@
-package logfilter
+package main
 
 import (
 	"errors"
@@ -7,37 +7,37 @@ import (
 	"time"
 )
 
-// CACHE_TIME time to cache the cluster status
-const CACHE_TIME = 30
+// cacheTime time to cache the cluster status
+const cacheTime = 30
 
-type Cluster struct {
+type cluster struct {
 	dnsAddress string
 	tag        string
 }
 
-type ClusterService interface {
-	IsActive() (bool, error)
+type clusterService interface {
+	isActive() (bool, error)
 }
 
-type MonitoredClusterService struct {
-	instance       Cluster
+type monitoredClusterService struct {
+	instance       cluster
 	cachedStatus   bool
 	cacheTimestamp time.Time
 }
 
-func NewMonitoredClusterService(dnsAddress string, tag string) MonitoredClusterService {
-	instance := Cluster{dnsAddress: dnsAddress, tag: tag}
-	return MonitoredClusterService{instance: instance}
+func newMonitoredClusterService(dnsAddress string, tag string) monitoredClusterService {
+	instance := cluster{dnsAddress: dnsAddress, tag: tag}
+	return monitoredClusterService{instance: instance}
 }
 
-func (mc MonitoredClusterService) IsActive() (bool, error) {
+func (mc monitoredClusterService) isActive() (bool, error) {
 	// if the DNS address contains the cluster tag (and implicitly the region)
 	// than this means that there is no failover mechanism in place
 	if strings.Contains(mc.instance.dnsAddress, mc.instance.tag) {
 		return true, nil
 	}
 
-	if time.Now().Sub(mc.cacheTimestamp).Seconds() < CACHE_TIME {
+	if time.Now().Sub(mc.cacheTimestamp).Seconds() < cacheTime {
 		return mc.cachedStatus, nil
 	}
 

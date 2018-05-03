@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Financial-Times/coco-logfilter"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +32,7 @@ func TestFixNewlines(t *testing.T) {
 	}
 }
 
-var rawJson = map[string]interface{}{
+var rawJSON = map[string]interface{}{
 	"MESSAGE":               "message",
 	"_HOSTNAME":             "hostname",
 	"_MACHINE_ID":           "machine",
@@ -58,14 +57,14 @@ var rawJson = map[string]interface{}{
 	"__REALTIME_TIMESTAMP":  "realtime timestamp",
 }
 
-var blacklistFilteredJson = map[string]interface{}{
+var blacklistFilteredJSON = map[string]interface{}{
 	"MESSAGE":       "message",
 	"_HOSTNAME":     "hostname",
 	"_MACHINE_ID":   "machine",
 	"_SYSTEMD_UNIT": "system",
 }
 
-var blacklistFilteredAndPropertiesRenamedJson = map[string]interface{}{
+var blacklistFilteredAndPropertiesRenamedJSON = map[string]interface{}{
 	"MESSAGE":      "message",
 	"HOSTNAME":     "hostname",
 	"MACHINE_ID":   "machine",
@@ -73,16 +72,16 @@ var blacklistFilteredAndPropertiesRenamedJson = map[string]interface{}{
 }
 
 func TestApplyPropertyBlacklist(t *testing.T) {
-	removeBlacklistedProperties(rawJson)
-	if !reflect.DeepEqual(rawJson, blacklistFilteredJson) {
-		t.Errorf("expected %v but got %v\n", blacklistFilteredJson, rawJson)
+	removeBlacklistedProperties(rawJSON)
+	if !reflect.DeepEqual(rawJSON, blacklistFilteredJSON) {
+		t.Errorf("expected %v but got %v\n", blacklistFilteredJSON, rawJSON)
 	}
 }
 
 func TestShouldRenameProperties(t *testing.T) {
-	renameProperties(blacklistFilteredJson)
-	if !reflect.DeepEqual(blacklistFilteredJson, blacklistFilteredAndPropertiesRenamedJson) {
-		t.Errorf("expected %v but got %v\n", blacklistFilteredAndPropertiesRenamedJson, blacklistFilteredJson)
+	renameProperties(blacklistFilteredJSON)
+	if !reflect.DeepEqual(blacklistFilteredJSON, blacklistFilteredAndPropertiesRenamedJSON) {
+		t.Errorf("expected %v but got %v\n", blacklistFilteredAndPropertiesRenamedJSON, blacklistFilteredJSON)
 	}
 }
 
@@ -170,13 +169,22 @@ func TestContainsBlacklistedStringWithoutBlacklistedString(t *testing.T) {
 }
 
 func TestBlacklistedServices(t *testing.T) {
+	for blacklistedService := range blacklistedServices {
+		msg := msgWithService(blacklistedService)
+		m := make(map[string]interface{})
+		json.Unmarshal([]byte(msg), &m)
+		assert.False(t, processMessage(m))
+	}
+}
+
+func TestNotBlacklistedServices(t *testing.T) {
 	testCases := []struct {
 		jsonString string
-		expected   bool
+		processed  bool
 	}{
 		{
-			jsonString: `{"CONTAINER_ID":"03d1f4078733","CONTAINER_ID_FULL":"03d1f4078733f75f4505b07d1f8a3e8287ed497d9d54e0e785440cb969378ca3","CONTAINER_NAME":"k8s_cluster-autoscaler_cluster-autoscaler-79d574774-2rxrj_kube-system_a093cbca-fb5a-11e7-a6b6-06263dd4a414_6","CONTAINER_TAG":"gcr.io/google_containers/cluster-autoscaler@sha256:6ceb111a36020dc2124c0d7e3746088c20c7e3806a1075dd9e5fe1c42f744fff","HOSTNAME":"ip-10-172-40-164.eu-west-1.compute.internal","MACHINE_ID":"8d1225f40ee64cc7bcce2f549a41657c","MESSAGE":"I0119 15:38:05.932385 1 leaderelection.go:199] successfully renewed lease kube-system/cluster-autoscaler","POD_NAME":"cluster-autoscaler-79d574774-2rxrj","SERVICE_NAME":"cluster-autoscaler","SYSTEMD_UNIT":"docker.service","_SOURCE_REALTIME_TIMESTAMP":"1516376285932645","_SYSTEMD_INVOCATION_ID":"e3b2703c430f45e8a7075dbcf6b3a588","environment":"upp-prod-publish-eu","platform":"up-coco"}`,
-			expected:   false,
+			jsonString: msgWithService("publish-availability-monitor"),
+			processed:  true,
 		},
 	}
 
@@ -184,7 +192,35 @@ func TestBlacklistedServices(t *testing.T) {
 		m := make(map[string]interface{})
 		json.Unmarshal([]byte(c.jsonString), &m)
 		ok := processMessage(m)
-		assert.True(t, c.expected == ok)
+		assert.True(t, c.processed == ok)
+	}
+}
+
+func TestBlacklistedContainerTags(t *testing.T) {
+	for _, blacklistedTag := range blacklistedContainerTags {
+		msg := msgWithContainerTag(blacklistedTag)
+		m := make(map[string]interface{})
+		json.Unmarshal([]byte(msg), &m)
+		assert.False(t, processMessage(m))
+	}
+}
+
+func TestNotBlacklistedContainerTag(t *testing.T) {
+	testCases := []struct {
+		jsonString string
+		processed  bool
+	}{
+		{
+			jsonString: msgWithContainerTag("publish-availability-monitor"),
+			processed:  true,
+		},
+	}
+
+	for _, c := range testCases {
+		m := make(map[string]interface{})
+		json.Unmarshal([]byte(c.jsonString), &m)
+		ok := processMessage(m)
+		assert.True(t, c.processed == ok)
 	}
 }
 
@@ -220,7 +256,7 @@ func TestClusterStatus(t *testing.T) {
 	}
 
 	for _, c := range testCases {
-		mc = logfilter.NewMonitoredClusterService(c.dnsAddress, c.tag)
+		mc = newMonitoredClusterService(c.dnsAddress, c.tag)
 		m := make(map[string]interface{})
 		json.NewDecoder(strings.NewReader(c.jsonString)).Decode(&m)
 		processMessage(m)
@@ -288,4 +324,12 @@ func TestBypassWithoutAPIKeysInURLQueryParams(t *testing.T) {
 	expectedMsg := `10.2.26.0 ops-17-01-2018 30/Jan/2018:08:35:04 /content/notifications-push?type=ALL 200 -2147483648 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36" transaction_id=- miss`
 	actualMsg := hideAPIKeysInURLQueryParams(msgWithoutAPIKey)
 	assert.Equal(t, expectedMsg, actualMsg)
+}
+
+func msgWithService(service string) string {
+	return fmt.Sprintf(`{"CONTAINER_ID":"03d1f4078733","CONTAINER_ID_FULL":"03d1f4078733f75f4505b07d1f8a3e8287ed497d9d54e0e785440cb969378ca3","CONTAINER_NAME":"k8s_cluster-autoscaler_cluster-autoscaler-79d574774-2rxrj_kube-system_a093cbca-fb5a-11e7-a6b6-06263dd4a414_6","CONTAINER_TAG":"gcr.io/google_containers/cluster-autoscaler@sha256:6ceb111a36020dc2124c0d7e3746088c20c7e3806a1075dd9e5fe1c42f744fff","HOSTNAME":"ip-10-172-40-164.eu-west-1.compute.internal","MACHINE_ID":"8d1225f40ee64cc7bcce2f549a41657c","MESSAGE":"I0119 15:38:05.932385 1 leaderelection.go:199] successfully renewed lease kube-system/cluster-autoscaler","POD_NAME":"cluster-autoscaler-79d574774-2rxrj","SERVICE_NAME":"%s","SYSTEMD_UNIT":"docker.service","_SOURCE_REALTIME_TIMESTAMP":"1516376285932645","_SYSTEMD_INVOCATION_ID":"e3b2703c430f45e8a7075dbcf6b3a588","environment":"upp-prod-publish-eu","platform":"up-coco"}`, service)
+}
+
+func msgWithContainerTag(containerTag string) string {
+	return fmt.Sprintf(`{"CONTAINER_ID":"03d1f4078733","CONTAINER_ID_FULL":"03d1f4078733f75f4505b07d1f8a3e8287ed497d9d54e0e785440cb969378ca3","CONTAINER_NAME":"k8s_cluster-autoscaler_cluster-autoscaler-79d574774-2rxrj_kube-system_a093cbca-fb5a-11e7-a6b6-06263dd4a414_6","CONTAINER_TAG":"%s@sha256:6ceb111a36020dc2124c0d7e3746088c20c7e3806a1075dd9e5fe1c42f744fff","HOSTNAME":"ip-10-172-40-164.eu-west-1.compute.internal","MACHINE_ID":"8d1225f40ee64cc7bcce2f549a41657c","MESSAGE":"I0119 15:38:05.932385 1 leaderelection.go:199] successfully renewed lease kube-system/cluster-autoscaler","POD_NAME":"cluster-autoscaler-79d574774-2rxrj","SERVICE_NAME":"whatever-api","SYSTEMD_UNIT":"docker.service","_SOURCE_REALTIME_TIMESTAMP":"1516376285932645","_SYSTEMD_INVOCATION_ID":"e3b2703c430f45e8a7075dbcf6b3a588","environment":"upp-prod-publish-eu","platform":"up-coco"}`, containerTag)
 }

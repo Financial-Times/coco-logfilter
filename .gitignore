@@ -27,5 +27,4 @@ coco-logfilter
 *.idea
 *.iml
 
-/vendor/*/
-!/vendor/vendor.json
+vendor/

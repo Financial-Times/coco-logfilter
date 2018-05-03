@@ -6,8 +6,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/Financial-Times/coco-logfilter"
 )
 
 var (
@@ -41,8 +39,6 @@ var (
 
 	blacklistedUnits = map[string]bool{
 		"log-collector.service":      true,
-		// "docker.service":          true,
-		"diamond.service":            true,
 		"logstash-forwarder.service": true,
 		"kubelet.service":            true,
 		"flanneld.service":           true,
@@ -75,6 +71,7 @@ var (
 		"gcr.io/google_containers/kubedns-amd64",
 		"gcr.io/google_containers/addon-resizer",
 		"coco/resilient-splunk-forwarder",
+		"coco-diamond",
 	}
 
 	propertyMapping = map[string]string{
@@ -84,16 +81,16 @@ var (
 	}
 )
 
-var environmentTag *string = new(string)
-var dnsAddress *string = new(string)
+var environmentTag = new(string)
+var dnsAddress = new(string)
 
-var mc logfilter.ClusterService
+var mc clusterService
 
 func main() {
 	*environmentTag = os.Getenv("ENV")
 	*dnsAddress = os.Getenv("DNS_ADDRESS")
 
-	mc = logfilter.NewMonitoredClusterService(*dnsAddress, *environmentTag)
+	mc = newMonitoredClusterService(*dnsAddress, *environmentTag)
 
 	dec := json.NewDecoder(os.Stdin)
 	enc := json.NewEncoder(os.Stdout)
@@ -128,9 +125,9 @@ func processMessage(m map[string]interface{}) bool {
 		}
 	}
 
-	syslogId := m["SYSLOG_IDENTIFIER"]
-	if syslogIdString, ok := syslogId.(string); ok {
-		if blacklistedSyslogIds[syslogIdString] {
+	syslogID := m["SYSLOG_IDENTIFIER"]
+	if syslogIDString, ok := syslogID.(string); ok {
+		if blacklistedSyslogIds[syslogIDString] {
 			return false
 		}
 	}
@@ -199,12 +196,12 @@ func munge(m map[string]interface{}, message string) {
 	message = fixNewLines(message)
 	m["MESSAGE"] = message
 
-	trans_id := extractTransactionId(message)
-	if trans_id != "" {
-		m["transaction_id"] = trans_id
+	tid := extractTransactionID(message)
+	if tid != "" {
+		m["transaction_id"] = tid
 	}
 
-	ent, ok, format := logfilter.Extract(message)
+	ent, ok, format := extract(message)
 	if !ok {
 		return
 	}
@@ -229,7 +226,7 @@ func munge(m map[string]interface{}, message string) {
 	}
 
 	if m["monitoring_event"] == "true" {
-		m["active_cluster"], _ = mc.IsActive()
+		m["active_cluster"], _ = mc.isActive()
 	}
 }
 
@@ -263,10 +260,10 @@ func splitByUnderscores(i interface{}) []string {
 	return []string{}
 }
 
-var trans_regex = regexp.MustCompile(`\btransaction_id=([A-Za-z0-9\-_:]+)`)
+var tidRegex = regexp.MustCompile(`\btransaction_id=([A-Za-z0-9\-_:]+)`)
 
-func extractTransactionId(message string) string {
-	matches := trans_regex.FindAllStringSubmatch(message, -1)
+func extractTransactionID(message string) string {
+	matches := tidRegex.FindAllStringSubmatch(message, -1)
 	if len(matches) != 0 {
 		return matches[0][1]
 	}
