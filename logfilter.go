@@ -49,6 +49,8 @@ var (
 		"cluster-autoscaler":             true,
 		"kube-resources-autosave-pusher": true,
 		"kube-resources-autosave-dumper": true,
+		"resilient-splunk-forwarder":     true,
+		"coco-diamond":                   true,
 	}
 
 	blacklistedStrings = []string{
@@ -70,8 +72,6 @@ var (
 		"gcr.io/google_containers/heapster",
 		"gcr.io/google_containers/kubedns-amd64",
 		"gcr.io/google_containers/addon-resizer",
-		"coco/resilient-splunk-forwarder",
-		"coco-diamond",
 	}
 
 	propertyMapping = map[string]string{
