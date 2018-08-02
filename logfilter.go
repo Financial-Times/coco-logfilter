@@ -118,11 +118,9 @@ func processMessage(m map[string]interface{}) bool {
 		}
 	}
 
-	serviceName := m["SERVICE_NAME"]
-	if serviceString, ok := serviceName.(string); ok {
-		if blacklistedServices[serviceString] {
-			return false
-		}
+	serviceName := computeServiceName(m)
+	if blacklistedServices[serviceName] {
+		return false
 	}
 
 	syslogID := m["SYSLOG_IDENTIFIER"]
@@ -188,11 +186,6 @@ func munge(m map[string]interface{}, message string) {
 		m["POD_NAME"] = podName
 	}
 
-	serviceName := extractServiceName(m["CONTAINER_NAME"])
-	if serviceName != "" && serviceName != "POD" {
-		m["SERVICE_NAME"] = serviceName
-	}
-
 	message = fixNewLines(message)
 	m["MESSAGE"] = message
 
@@ -228,6 +221,14 @@ func munge(m map[string]interface{}, message string) {
 	if m["monitoring_event"] == "true" {
 		m["active_cluster"], _ = mc.isActive()
 	}
+}
+
+func computeServiceName(m map[string]interface{}) string {
+	serviceName := extractServiceName(m["CONTAINER_NAME"])
+	if serviceName != "" && serviceName != "POD" {
+		m["SERVICE_NAME"] = serviceName
+	}
+	return serviceName
 }
 
 func extractServiceName(containerTag interface{}) string {
